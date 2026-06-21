@@ -1,0 +1,20 @@
+{
+  "name": "Angus Scheduler",
+  "short_name": "Scheduler",
+  "description": "OE 课程排程系统 - 课程、场地、AV 管理",
+  "start_url": "/angus-scheduler/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#0a0a14",
+  "theme_color": "#00d4ff",
+  "categories": ["productivity", "business"],
+  "lang": "zh-CN",
+  "icons": [
+    {
+      "src": "/angus-scheduler/icon.svg",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
