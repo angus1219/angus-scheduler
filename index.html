@@ -145,15 +145,7 @@ header{display:flex;align-items:center;justify-content:space-between;padding:14p
 .form-actions{display:flex;gap:8px;margin-top:20px}
 .form-actions .btn{flex:1;justify-content:center}
 
-/* Sessions builder inside course modal */
-.sessions-builder{margin-top:8px}
-.sessions-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
-.sessions-head-title{font-size:12px;font-weight:600;color:var(--text-dim);text-transform:uppercase;letter-spacing:.06em}
-.session-form{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-sm);padding:12px;margin-bottom:8px;position:relative}
-.session-form .remove-session{position:absolute;top:8px;right:8px;width:24px;height:24px;border-radius:50%;border:none;background:rgba(239,68,68,0.15);color:var(--red);cursor:pointer;font-size:11px;display:flex;align-items:center;justify-content:center}
-.session-form .remove-session:hover{background:rgba(239,68,68,0.25)}
-.add-session-btn{width:100%;padding:10px;border:1.5px dashed var(--border-bright);border-radius:var(--radius-sm);background:transparent;color:var(--text-dim);cursor:pointer;font-size:13px;font-weight:500;transition:all .2s;font-family:inherit}
-.add-session-btn:hover{border-color:var(--accent);color:var(--accent);background:rgba(0,212,255,0.05)}
+/* (Removed sessions builder styles - now using date range) */
 
 /* Venue tags */
 .venue-section{margin-top:8px}
@@ -259,7 +251,7 @@ header{display:flex;align-items:center;justify-content:space-between;padding:14p
 <div class="modal-overlay" id="courseModal">
   <div class="modal">
     <h2 id="modalTitle">新建课程</h2>
-    <div class="modal-sub">先创建课程，再为每个场次设定场地和 AV</div>
+    <div class="modal-sub">设置日期范围、场地、AV 系统</div>
     <form id="courseForm" autocomplete="off">
       <input type="hidden" id="editId" value="">
       <div class="form-group">
@@ -271,12 +263,36 @@ header{display:flex;align-items:center;justify-content:space-between;padding:14p
         <textarea id="courseNotes" placeholder="可选：教练、学员数、特殊要求..."></textarea>
       </div>
 
-      <div class="sessions-builder">
-        <div class="sessions-head">
-          <span class="sessions-head-title">📅 场次安排（每个场次独立设场地和 AV）</span>
+      <div class="form-row">
+        <div class="form-group">
+          <label>开始日期</label>
+          <input type="date" id="startDate" required>
         </div>
-        <div id="sessionsList"></div>
-        <button type="button" class="add-session-btn" id="addSessionBtn">+ 添加场次</button>
+        <div class="form-group">
+          <label>结束日期</label>
+          <input type="date" id="endDate" required>
+        </div>
+      </div>
+      <div id="dateRangeInfo" style="font-size:12px;color:var(--accent);margin-top:-8px;margin-bottom:14px;font-weight:600;min-height:18px"></div>
+
+      <div class="form-group">
+        <label>时间</label>
+        <input type="text" id="courseTime" placeholder="9:00am - 6:00pm">
+      </div>
+
+      <div class="form-group">
+        <label>场地</label>
+        <select id="courseVenue"></select>
+        <input type="text" id="customVenueInput" placeholder="输入场地名称..." style="margin-top:6px;display:none">
+      </div>
+
+      <div class="form-group">
+        <label>AV 系统</label>
+        <select id="courseAvType">
+          <option value="">— 待定 —</option>
+          <option value="inhouse">🎤 Inhouse AV</option>
+          <option value="outsource">📡 Outsource AV</option>
+        </select>
       </div>
 
       <div id="deleteSection" style="display:none">
@@ -582,18 +598,61 @@ function renderVenueModal(){
 
 // ==== Course Modal ====
 let editingCourse=null;
-let editingSessions=[];
+
+function getDatesInRange(startStr,endStr){
+  const dates=[];
+  const start=parseDate(startStr);
+  const end=parseDate(endStr);
+  if(start>end)return [];
+  const cur=new Date(start);
+  while(cur<=end){
+    dates.push(fmtDate(cur));
+    cur.setDate(cur.getDate()+1);
+  }
+  return dates;
+}
+
+function updateDateRangeInfo(){
+  const s=document.getElementById('startDate').value;
+  const e=document.getElementById('endDate').value;
+  const info=document.getElementById('dateRangeInfo');
+  if(!s||!e){info.textContent='';return}
+  const dates=getDatesInRange(s,e);
+  if(dates.length===0){info.textContent='⚠️ 结束日期不能早于开始日期';info.style.color='var(--red)';return}
+  info.style.color='var(--accent)';
+  info.textContent=dates.length===1?`📅 1 天 · ${dates[0]}`:`📅 ${dates.length} 天 · ${dates[0]} 至 ${dates[dates.length-1]}`;
+}
+
+function renderVenueSelect(selected){
+  const sel=document.getElementById('courseVenue');
+  let opts=`<option value="">— 暂不选 —</option>`;
+  opts+=BUILTIN_VENUES.map(v=>`<option value="${v}" ${v===selected?'selected':''}>${v}</option>`).join('');
+  venues.forEach(v=>{opts+=`<option value="${v}" ${v===selected?'selected':''}>${v}</option>`});
+  opts+=`<option value="__custom__">➕ 其他场地...</option>`;
+  sel.innerHTML=opts;
+  if(selected&&!isBuiltin(selected)&&!venues.includes(selected)){
+    sel.value='__custom__';
+    document.getElementById('customVenueInput').value=selected;
+    document.getElementById('customVenueInput').style.display='block';
+  }
+}
 
 function openNewCourse(){
   editingCourse=null;
-  editingSessions=[{date:selectedDate||fmtDate(new Date()),time:'',venue:'',avType:''}];
   document.getElementById('modalTitle').textContent='新建课程';
   document.getElementById('editId').value='';
   document.getElementById('courseName').value='';
   document.getElementById('courseNotes').value='';
+  document.getElementById('startDate').value=selectedDate||fmtDate(new Date());
+  document.getElementById('endDate').value=selectedDate||fmtDate(new Date());
+  document.getElementById('courseTime').value='';
+  document.getElementById('courseAvType').value='';
+  document.getElementById('customVenueInput').style.display='none';
+  document.getElementById('customVenueInput').value='';
+  renderVenueSelect('');
   document.getElementById('deleteSection').style.display='none';
   document.getElementById('modalSave').textContent='保存课程';
-  renderSessionsBuilder();
+  updateDateRangeInfo();
   showModal('courseModal');
 }
 
@@ -601,91 +660,27 @@ function openEditCourse(id){
   const course=courses.find(c=>c.id===id);
   if(!course)return;
   editingCourse=course;
-  editingSessions=JSON.parse(JSON.stringify(course.sessions||[]));
-  if(editingSessions.length===0)editingSessions=[{date:fmtDate(new Date()),time:'',venue:'',avType:''}];
+  // Use first session's date as start, last as end. If only one, both are the same.
+  const sessions=(course.sessions||[]).map(s=>s.date).sort();
+  const firstDate=sessions[0]||fmtDate(new Date());
+  const lastDate=sessions[sessions.length-1]||firstDate;
+  // Get venue/av/time from first session (single shared venue)
+  const firstSession=course.sessions?.[0]||{};
   document.getElementById('modalTitle').textContent='编辑课程';
   document.getElementById('editId').value=id;
   document.getElementById('courseName').value=course.name;
   document.getElementById('courseNotes').value=course.notes||'';
+  document.getElementById('startDate').value=firstDate;
+  document.getElementById('endDate').value=lastDate;
+  document.getElementById('courseTime').value=firstSession.time||'';
+  document.getElementById('courseAvType').value=firstSession.avType||'';
+  document.getElementById('customVenueInput').value='';
+  document.getElementById('customVenueInput').style.display='none';
+  renderVenueSelect(firstSession.venue||'');
   document.getElementById('deleteSection').style.display='block';
   document.getElementById('modalSave').textContent='更新课程';
-  renderSessionsBuilder();
+  updateDateRangeInfo();
   showModal('courseModal');
-}
-
-function renderVenueOptions(selected){
-  let opts=`<option value="">— 暂不选 —</option>`;
-  opts+=`<optgroup label="🏠 自有场地">`;
-  opts+=BUILTIN_VENUES.map(v=>`<option value="${v}" ${v===selected?'selected':''}>${v}</option>`).join('');
-  opts+=`</optgroup>`;
-  if(venues.length>0){
-    opts+=`<optgroup label="📌 外部场地">`;
-    opts+=venues.map(v=>`<option value="${v}" ${v===selected?'selected':''}>${v}</option>`).join('');
-    opts+=`</optgroup>`;
-  }
-  opts+=`<option value="__custom__">➕ 其他场地...</option>`;
-  return opts;
-}
-
-function renderSessionsBuilder(){
-  const list=document.getElementById('sessionsList');
-  list.innerHTML=editingSessions.map((s,i)=>`
-    <div class="session-form" data-idx="${i}">
-      ${editingSessions.length>1?`<button type="button" class="remove-session" data-remove="${i}">✕</button>`:''}
-      <div class="form-row">
-        <div class="form-group" style="margin-bottom:8px">
-          <label>日期</label>
-          <input type="date" data-field="date" value="${s.date}" required>
-        </div>
-        <div class="form-group" style="margin-bottom:8px">
-          <label>时间</label>
-          <input type="text" data-field="time" value="${s.time||''}" placeholder="9:00am - 6:00pm">
-        </div>
-      </div>
-      <div class="form-group" style="margin-bottom:0">
-        <label>场地</label>
-        <select data-field="venue">${renderVenueOptions(s.venue||'')}</select>
-        <input type="text" data-field="customVenue" value="${s.venue&&!isBuiltin(s.venue)&&!venues.includes(s.venue)?s.venue:''}" placeholder="输入场地名称..." style="margin-top:6px;display:${s.venue==='__custom__'||(s.venue&&!isBuiltin(s.venue)&&!venues.includes(s.venue))?'block':'none'}">
-      </div>
-      <div class="form-group" style="margin-bottom:0">
-        <label>AV 系统</label>
-        <select data-field="avType">
-          <option value="" ${!s.avType?'selected':''}>— 待定 —</option>
-          <option value="inhouse" ${s.avType==='inhouse'?'selected':''}>🎤 Inhouse AV</option>
-          <option value="outsource" ${s.avType==='outsource'?'selected':''}>📡 Outsource AV</option>
-        </select>
-      </div>
-    </div>
-  `).join('');
-
-  list.querySelectorAll('.session-form').forEach(form=>{
-    const idx=+form.dataset.idx;
-    form.querySelectorAll('[data-field]').forEach(input=>{
-      input.addEventListener('change',e=>{
-        const f=e.target.dataset.field;
-        let val=e.target.value;
-        if(f==='venue'&&val==='__custom__'){
-          e.target.nextElementSibling.style.display='block';
-          e.target.nextElementSibling.focus();
-          val='';
-        }else if(f==='venue'){
-          e.target.nextElementSibling.style.display='none';
-        }
-        if(f==='customVenue'){
-          editingSessions[idx].venue=val;
-        }else{
-          editingSessions[idx][f]=val;
-        }
-      });
-    });
-    form.querySelectorAll('[data-remove]').forEach(btn=>{
-      btn.addEventListener('click',()=>{
-        const i=+btn.dataset.remove;
-        editingSessions.splice(i,1);
-        renderSessionsBuilder();
-      });
-    });
-  });
 }
 
 function showModal(id){document.getElementById(id).classList.add('active')}
@@ -832,17 +827,23 @@ document.getElementById('courseForm').addEventListener('submit',async e=>{
   const id=document.getElementById('editId').value;
   const name=document.getElementById('courseName').value.trim();
   const notes=document.getElementById('courseNotes').value.trim();
+  const startDate=document.getElementById('startDate').value;
+  const endDate=document.getElementById('endDate').value;
+  const time=document.getElementById('courseTime').value.trim();
+  const venueSel=document.getElementById('courseVenue').value;
+  const customVenue=document.getElementById('customVenueInput').value.trim();
+  const venue=venueSel==='__custom__'?customVenue:venueSel;
+  const avType=document.getElementById('courseAvType').value;
 
   if(!name){showToast('请输入课程名称','error');return}
-  if(editingSessions.length===0){showToast('至少需要一个场次','error');return}
+  if(!startDate||!endDate){showToast('请选择日期','error');return}
+  const dates=getDatesInRange(startDate,endDate);
+  if(dates.length===0){showToast('结束日期不能早于开始日期','error');return}
 
-  // Validate sessions
-  for(let i=0;i<editingSessions.length;i++){
-    const s=editingSessions[i];
-    if(!s.date){showToast(`第 ${i+1} 个场次缺日期`,'error');return}
-  }
+  // Build sessions — one per date, all sharing the same venue/av/time
+  const sessions=dates.map(date=>({date,time,venue,avType}));
 
-  const course={name,notes,sessions:editingSessions};
+  const course={name,notes,sessions};
   if(id)course.id=+id;
 
   try{
@@ -853,8 +854,18 @@ document.getElementById('courseForm').addEventListener('submit',async e=>{
     renderCoursesView();
     hideModal('courseModal');
     syncPush();
-    showToast(id?'课程已更新 ✓':'课程已创建 ✓');
+    showToast(id?'课程已更新 ✓':`课程已创建 · ${dates.length} 天 ✓`);
   }catch(err){showToast('保存失败: '+err.message,'error')}
+});
+
+// Date range listeners
+document.getElementById('startDate').addEventListener('change',updateDateRangeInfo);
+document.getElementById('endDate').addEventListener('change',updateDateRangeInfo);
+
+// Venue select listener
+document.getElementById('courseVenue').addEventListener('change',function(){
+  document.getElementById('customVenueInput').style.display=this.value==='__custom__'?'block':'none';
+  if(this.value==='__custom__')document.getElementById('customVenueInput').focus();
 });
 
 // Settings
