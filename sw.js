@@ -1,4 +1,4 @@
-const CACHE = 'angus-scheduler-v3';
+const CACHE = 'angus-scheduler-v4';
 const URLS = [
   '/angus-scheduler/',
   '/angus-scheduler/index.html',

@@ -204,7 +204,9 @@ header{display:flex;align-items:center;justify-content:space-between;padding:14p
     </div>
   </header>
 
-  <div class="view-tabs">
+  <div id="errorBanner" style="display:none;background:rgba(239,68,68,0.15);border:1px solid rgba(239,68,68,0.3);border-radius:var(--radius-sm);padding:10px 14px;font-size:13px;color:var(--red);margin-bottom:12px"></div>
+
+<div class="view-tabs">
     <button class="view-tab active" data-view="calendar">📅 日历</button>
     <button class="view-tab" data-view="courses">📋 课程列表</button>
   </div>
@@ -222,7 +224,7 @@ header{display:flex;align-items:center;justify-content:space-between;padding:14p
       <div class="calendar-header" id="calHeader"></div>
       <div class="calendar-grid" id="calGrid"></div>
     </div>
-    <div class="day-detail">
+    <div class="day-detail" id="dayDetail">
       <div class="day-detail-head">
         <div class="day-title">
           <span id="selectedDateTitle">选择一个日期</span>
@@ -481,6 +483,7 @@ function renderDayDetail(){
   const sub=document.getElementById('selectedDateSub');
   const container=document.getElementById('sessionsContainer');
   const empty=document.getElementById('emptyState');
+  if(!container||!empty)return; // defensive
 
   if(!selectedDate){
     title.textContent='选择一个日期';
@@ -947,12 +950,13 @@ document.querySelectorAll('.modal-overlay').forEach(el=>{
     if(syncToken&&syncGistId){syncEnabled=true;syncPull()}
 
     if('serviceWorker'in navigator){
-      try{await navigator.serviceWorker.register('sw.js');console.log('SW registered');}
+        try{await navigator.serviceWorker.register('sw.js?v=4');console.log('SW registered');}
       catch(e){console.log('SW registration failed:',e)}
     }
   }catch(err){
     console.error('Init failed:',err);
-    showToast('启动错误: '+err.message,'error');
+    const banner=document.getElementById('errorBanner');
+    if(banner){banner.style.display='block';banner.textContent='⚠️ 启动错误: '+err.message+' — 请清除浏览器缓存后刷新'}
   }
 })();
 </script>
