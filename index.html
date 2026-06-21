@@ -129,8 +129,8 @@ header{display:flex;align-items:center;justify-content:space-between;padding:14p
 .session-info{flex:1;display:flex;flex-wrap:wrap;gap:4px;align-items:center}
 
 /* Modal */
-.modal-overlay{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.7);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);display:flex;align-items:center;justify-content:center;z-index:100;padding:16px;opacity:0;pointer-events:none;transition:opacity .25s}
-.modal-overlay.active{opacity:1;pointer-events:auto}
+.modal-overlay{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.7);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);display:flex;align-items:center;justify-content:center;z-index:100;padding:16px;opacity:0;pointer-events:none;visibility:hidden;transition:opacity .25s,visibility .25s}
+.modal-overlay.active{opacity:1;pointer-events:auto;visibility:visible}
 .modal{background:var(--bg-2);border:1px solid var(--border);border-radius:var(--radius);padding:24px;width:100%;max-width:480px;max-height:90dvh;overflow-y:auto;box-shadow:0 0 80px rgba(0,212,255,0.1),0 24px 48px rgba(0,0,0,0.4)}
 .modal h2{font-size:18px;font-weight:700;margin-bottom:6px;letter-spacing:-.02em}
 .modal-sub{font-size:12px;color:var(--text-muted);margin-bottom:20px;letter-spacing:.02em}
