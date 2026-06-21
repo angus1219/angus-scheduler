@@ -1,7 +1,7 @@
 {
-  "name": "Angus Scheduler",
-  "short_name": "Scheduler",
-  "description": "OE 课程排程系统 - 课程、场地、AV 管理",
+  "name": "OE课程日历",
+  "short_name": "OE日历",
+  "description": "OE课程日历 - 课程、场地、AV 管理",
   "start_url": "/angus-scheduler/",
   "display": "standalone",
   "orientation": "portrait",
