@@ -464,10 +464,16 @@ function courseStatus(course){
 }
 
 function computeStats(){
-  const all=getAllUpcomingSessions();
-  const total=all.length;
-  const venuePending=all.filter(x=>!sessionHasVenue(x.session)).length;
-  const avPending=all.filter(x=>!sessionHasAv(x.session)).length;
+  // 按课程数（不是按 session 数）— 同一门课无论几天都算一班
+  const total=courses.length;
+  // 未定场地/未安排 AV 按 session 算 — 哪个日子有问题就显示
+  let venuePending=0,avPending=0;
+  for(const c of courses){
+    for(const s of (c.sessions||[])){
+      if(!sessionHasVenue(s))venuePending++;
+      if(!sessionHasAv(s))avPending++;
+    }
+  }
   document.getElementById('statTotal').textContent=total;
   const vp=document.getElementById('statVenuePending');
   vp.textContent=venuePending;vp.className='num'+(venuePending>0?' warn':'');
