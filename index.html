@@ -814,18 +814,6 @@ document.querySelectorAll('.view-tab').forEach(t=>{
 document.getElementById('addBtn').addEventListener('click',openNewCourse);
 document.getElementById('modalCancel').addEventListener('click',()=>hideModal('courseModal'));
 
-document.getElementById('addSessionBtn').addEventListener('click',()=>{
-  // Add new session with date = last session + 1 day
-  const last=editingSessions[editingSessions.length-1];
-  let nextDate=fmtDate(new Date());
-  if(last&&last.date){
-    const d=parseDate(last.date);d.setDate(d.getDate()+1);
-    nextDate=fmtDate(d);
-  }
-  editingSessions.push({date:nextDate,time:'',venue:'',avType:''});
-  renderSessionsBuilder();
-});
-
 document.getElementById('courseForm').addEventListener('submit',async e=>{
   e.preventDefault();
   const id=document.getElementById('editId').value;
@@ -844,7 +832,6 @@ document.getElementById('courseForm').addEventListener('submit',async e=>{
   const dates=getDatesInRange(startDate,endDate);
   if(dates.length===0){showToast('结束日期不能早于开始日期','error');return}
 
-  // Build sessions — one per date, all sharing the same venue/av/time
   const sessions=dates.map(date=>({date,time,venue,avType}));
 
   const course={name,notes,sessions};
