@@ -938,9 +938,18 @@ document.querySelectorAll('.modal-overlay').forEach(el=>{
 
 // Init — use DOMContentLoaded for reliability, with fallback
 async function initApp(){
+  // Timeout guard: if IndexedDB hangs, still render UI
+  const timeout = setTimeout(()=>{
+    selectedDate=selectedDate||fmtDate(new Date());
+    renderCalendar();
+    renderDayDetail();
+    renderCoursesView();
+    updateSyncUI();
+  }, 5000);
   try{
     await loadVenues();
     await loadCourses();
+    clearTimeout(timeout);
     selectedDate=fmtDate(new Date());
     renderCalendar();
     renderDayDetail();
@@ -965,6 +974,12 @@ if(document.readyState==='loading'){
   // If still not initialized after 100ms, force init
   setTimeout(initApp,0);
 }
+
+// Safety net: if user clicks and grid is empty, re-init
+document.addEventListener('click',()=>{
+  if(selectedDate)return;
+  if(typeof initApp==='function')initApp();
+},true);
 </script>
 </body>
 </html>
