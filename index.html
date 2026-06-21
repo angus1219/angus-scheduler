@@ -106,11 +106,28 @@ header{display:flex;align-items:center;justify-content:space-between;padding:14p
 .session-meta{display:flex;flex-wrap:wrap;gap:6px;font-size:12px}
 .badge{display:inline-flex;align-items:center;gap:4px;padding:3px 9px;border-radius:50px;font-size:11px;font-weight:600;letter-spacing:.01em}
 .badge-inhouse{background:rgba(16,185,129,0.12);color:var(--green);border:1px solid rgba(16,185,129,0.25)}
-.badge-outsource{background:rgba(245,158,11,0.12);color:var(--amber);border:1px solid rgba(245,158,11,0.25)}
+.badge-outsource-booked{background:rgba(59,130,246,0.12);color:#60a5fa;border:1px solid rgba(59,130,246,0.25)}
+.badge-outsource-pending{background:rgba(245,158,11,0.12);color:var(--amber);border:1px solid rgba(245,158,11,0.25)}
 .badge-venue{background:rgba(124,58,237,0.12);color:#a78bfa;border:1px solid rgba(124,58,237,0.25)}
 .badge-pending{background:rgba(245,158,11,0.12);color:var(--amber);border:1px solid rgba(245,158,11,0.25)}
 .badge-time{background:rgba(255,255,255,0.06);color:var(--text-dim);border:1px solid var(--border)}
 .badge-day{background:linear-gradient(135deg,rgba(0,212,255,0.15),rgba(124,58,237,0.15));color:var(--accent);border:1px solid rgba(0,212,255,0.25)}
+.badge-status-upcoming{background:rgba(0,212,255,0.12);color:var(--accent);border:1px solid rgba(0,212,255,0.25)}
+.badge-status-active{background:rgba(16,185,129,0.12);color:var(--green);border:1px solid rgba(16,185,129,0.25)}
+.badge-status-ended{background:rgba(100,116,139,0.12);color:var(--text-dim);border:1px solid rgba(100,116,139,0.25)}
+
+/* Stats bar */
+.stats-bar{display:flex;gap:8px;flex-wrap:wrap;padding:10px 14px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-sm);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
+.stat-item{display:flex;align-items:center;gap:5px;font-size:12px;font-weight:600;color:var(--text-dim)}
+.stat-item .num{color:var(--accent);font-size:15px;font-weight:700}
+.stat-item .num.warn{color:var(--amber)}
+.stat-item .num.danger{color:var(--red)}
+
+/* Calendar course label */
+.cal-day .cal-label{font-size:8px;line-height:1.1;color:var(--text-dim);max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin-top:1px;padding:0 1px}
+.cal-day .cal-label.inhouse{color:var(--green)}
+.cal-day .cal-label.outsource-pending{color:var(--amber)}
+.cal-day .cal-label.outsource-booked{color:#60a5fa}
 
 /* Courses list (toggle view) */
 .courses-list{display:flex;flex-direction:column;gap:10px}
@@ -206,6 +223,12 @@ header{display:flex;align-items:center;justify-content:space-between;padding:14p
 
   <div id="errorBanner" style="display:none;background:rgba(239,68,68,0.15);border:1px solid rgba(239,68,68,0.3);border-radius:var(--radius-sm);padding:10px 14px;font-size:13px;color:var(--red);margin-bottom:12px"></div>
 
+<div class="stats-bar" id="statsBar">
+  <span class="stat-item">📅 <span class="num" id="statTotal">0</span> 堂</span>
+  <span class="stat-item">📍 <span class="num" id="statVenuePending">0</span> 未定场地</span>
+  <span class="stat-item">🎤 <span class="num" id="statAvPending">0</span> AV未安排</span>
+</div>
+
 <div class="view-tabs">
     <button class="view-tab active" data-view="calendar">📅 日历</button>
     <button class="view-tab" data-view="courses">📋 课程列表</button>
@@ -293,7 +316,8 @@ header{display:flex;align-items:center;justify-content:space-between;padding:14p
         <select id="courseAvType">
           <option value="">— 待定 —</option>
           <option value="inhouse">🎤 Inhouse AV</option>
-          <option value="outsource">📡 Outsource AV</option>
+          <option value="outsource-pending">📡 外包(未安排)</option>
+          <option value="outsource-booked">📡 外包(已安排)</option>
         </select>
       </div>
 
@@ -422,10 +446,38 @@ function getAllUpcomingSessions(){
   return all;
 }
 function sessionHasVenue(s){return s.venue&&s.venue.trim()!==''}
-function sessionHasAv(s){return s.avType==='inhouse'||s.avType==='outsource'}
+function sessionHasAv(s){return s.avType==='inhouse'||s.avType==='outsource-booked'||s.avType==='outsource-pending'||s.avType==='outsource'}
+function avDisplay(s){
+  if(!s.avType||s.avType==='')return null;
+  if(s.avType==='inhouse')return 'inhouse';
+  if(s.avType==='outsource-booked')return 'outsource-booked';
+  return 'outsource-pending'; // outsource, outsource-pending, or anything else
+}
+function courseStatus(course){
+  const today=fmtDate(new Date());
+  const dates=(course.sessions||[]).map(s=>s.date).sort();
+  if(!dates.length)return'upcoming';
+  const first=dates[0],last=dates[dates.length-1];
+  if(today<first)return'upcoming';
+  if(today>last)return'ended';
+  return'active';
+}
+
+function computeStats(){
+  const all=getAllUpcomingSessions();
+  const total=all.length;
+  const venuePending=all.filter(x=>!sessionHasVenue(x.session)).length;
+  const avPending=all.filter(x=>!sessionHasAv(x.session)).length;
+  document.getElementById('statTotal').textContent=total;
+  const vp=document.getElementById('statVenuePending');
+  vp.textContent=venuePending;vp.className='num'+(venuePending>0?' warn':'');
+  const ap=document.getElementById('statAvPending');
+  ap.textContent=avPending;ap.className='num'+(avPending>0?' warn':'');
+}
 
 // ==== Calendar Render ====
 function renderCalendar(){
+  computeStats();
   const y=currentDate.getFullYear(),m=currentDate.getMonth();
   document.getElementById('monthTitle').textContent=`${MONTHS[m]} ${y}`;
 
@@ -456,17 +508,16 @@ function renderCalendar(){
     if(isToday)cls+=' today';
     if(isSel)cls+=' selected';
 
-    let dotsHtml='<div class="session-dots">';
-    const inhouseCount=daySessions.filter(x=>x.session.avType==='inhouse').length;
-    const outsourceCount=daySessions.filter(x=>x.session.avType==='outsource').length;
-    const pendingCount=daySessions.filter(x=>!sessionHasAv(x.session)).length;
-    if(inhouseCount>0)dotsHtml+=`<span class="dot dot-inhouse"></span>`;
-    if(outsourceCount>0)dotsHtml+=`<span class="dot dot-outsource"></span>`;
-    if(pendingCount>0)dotsHtml+=`<span class="dot" style="background:var(--text-muted);opacity:.4"></span>`;
-    dotsHtml+='</div>';
-    if(daySessions.length===0)dotsHtml='';
-    const count=daySessions.length>1?`<div class="day-count">${daySessions.length}</div>`:'';
-    return `<div class="${cls}" data-date="${dateStr}"><span class="day-num">${c.d}</span>${dotsHtml}${count}</div>`;
+    // Course labels on calendar
+    const labels=daySessions.slice(0,3).map(item=>{
+      const name=item.course.name.slice(0,6);
+      const av=avDisplay(item.session);
+      const avCls=av||'';
+      return `<div class="cal-label ${avCls}">${name}</div>`;
+    }).join('');
+    const more=daySessions.length>3?`<div class="cal-label" style="color:var(--text-muted)">+${daySessions.length-3}</div>`:'';
+
+    return `<div class="${cls}" data-date="${dateStr}"><span class="day-num">${c.d}</span>${labels}${more}</div>`;
   }).join('');
 
   grid.querySelectorAll('.cal-day').forEach(el=>{
@@ -513,26 +564,34 @@ function renderDayDetail(){
     el.addEventListener('click',()=>openEditCourse(+el.dataset.courseId));
   });
 }
-
 function renderSessionCard(course,session,sessionIdx){
   const dayIndex=course.sessions.findIndex(s=>s.date===session.date);
   const totalDays=course.sessions.length;
   const dayLabel=totalDays>1?`Day ${dayIndex+1}/${totalDays} · `:'';
-  let venueBadge='',avBadge='';
+  let venueBadge='',avBadge='',statusBadge='';
   if(sessionHasVenue(session)){
     venueBadge=`<span class="badge badge-venue">📍 ${session.venue}</span>`;
-  }
-  if(session.avType==='inhouse'){
-    avBadge='<span class="badge badge-inhouse">🎤 Inhouse</span>';
-  }else if(session.avType==='outsource'){
-    avBadge='<span class="badge badge-outsource">📡 Outsource</span>';
   }else{
-    avBadge='<span class="badge badge-pending">⏳ 待定 AV</span>';
+    venueBadge='<span class="badge badge-pending">⏳ 场地待定</span>';
   }
+  const av=avDisplay(session);
+  if(av==='inhouse'){
+    avBadge='<span class="badge badge-inhouse">🎤 Inhouse</span>';
+  }else if(av==='outsource-booked'){
+    avBadge='<span class="badge badge-outsource-booked">📡 外包(已安排)</span>';
+  }else if(av==='outsource-pending'){
+    avBadge='<span class="badge badge-outsource-pending">📡 外包(未安排)</span>';
+  }else{
+    avBadge='<span class="badge badge-pending">⏳ AV待定</span>';
+  }
+  const st=courseStatus(course);
+  const statusMap={upcoming:'即将开始',active:'进行中',ended:'已结束'};
+  const statusCls={upcoming:'badge-status-upcoming',active:'badge-status-active',ended:'badge-status-ended'};
+  statusBadge=`<span class="badge ${statusCls[st]}">● ${statusMap[st]}</span>`;
   const timeHtml=session.time?`<span class="badge badge-time">⏰ ${session.time}</span>`:'';
-  const pendingCls=!sessionHasVenue(session)?'course-pending':'';
+  const pendingCls=!sessionHasVenue(session)||!sessionHasAv(session)?'course-pending':'';
   return `<div class="session-card ${pendingCls}" data-course-id="${course.id}">
-    <div class="session-name">${course.name}</div>
+    <div class="session-name">${course.name} ${statusBadge}</div>
     <div class="session-meta">${totalDays>1?`<span class="badge badge-day">📆 ${dayLabel}${session.date}</span>`:''}${timeHtml}${venueBadge}${avBadge}</div>
     ${course.notes?`<div style="font-size:12px;color:var(--text-muted);margin-top:6px">${course.notes}</div>`:''}
   </div>`;
@@ -567,7 +626,7 @@ function renderCoursesView(){
       <div class="course-sessions">
         ${sessions.map((s,i)=>{
           const venue=s.venue?`<span class="badge badge-venue">📍 ${s.venue}</span>`:'<span class="badge badge-pending">⏳ 场地待定</span>';
-          const av=s.avType==='inhouse'?'<span class="badge badge-inhouse">🎤 Inhouse</span>':s.avType==='outsource'?'<span class="badge badge-outsource">📡 Outsource</span>':'<span class="badge badge-pending">⏳ AV 待定</span>';
+          const av=s.avType==='inhouse'?'<span class="badge badge-inhouse">🎤 Inhouse</span>':s.avType==='outsource-booked'?'<span class="badge badge-outsource-booked">📡 外包(已安排)</span>':s.avType==='outsource-pending'||s.avType==='outsource'?'<span class="badge badge-outsource-pending">📡 外包(未安排)</span>':'<span class="badge badge-pending">⏳ AV待定</span>';
           const time=s.time?`<span class="badge badge-time">⏰ ${s.time}</span>`:'';
           return `<div class="course-session-item">
             <span class="session-date">📆 ${s.date}</span>
@@ -764,7 +823,7 @@ async function syncPull(){
         venues=[];
         for(const v of data.venues.filter(x=>!isBuiltin(x))){await dbPut(VENUE_STORE,{name:v});venues.push(v)}
       }
-      renderCalendar();renderDayDetail();renderCoursesView();
+      renderCalendar();renderDayDetail();renderCoursesView();computeStats();
       showToast('已从云端同步最新数据 ✓');
     }
     syncEnabled=true;
