@@ -14,213 +14,276 @@
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{
-  --bg:#0a0a14;
+  --bg:#07070d;
+  --bg-2:#0f0f1a;
   --surface:rgba(255,255,255,0.04);
-  --surface-hover:rgba(255,255,255,0.08);
+  --surface-hover:rgba(255,255,255,0.07);
+  --surface-2:rgba(255,255,255,0.06);
   --border:rgba(255,255,255,0.08);
-  --text:#e2e8f0;
-  --text-dim:#64748b;
+  --border-bright:rgba(255,255,255,0.14);
+  --text:#f1f5f9;
+  --text-dim:#94a3b8;
+  --text-muted:#64748b;
   --accent:#00d4ff;
-  --accent-glow:rgba(0,212,255,0.25);
-  --purple:#7c3aed;
+  --accent-2:#7c3aed;
+  --accent-3:#ec4899;
   --green:#10b981;
   --amber:#f59e0b;
   --red:#ef4444;
-  --radius:12px;
-  --radius-sm:8px;
+  --radius:16px;
+  --radius-sm:10px;
 }
-html,body{height:100%;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(--text);-webkit-font-smoothing:antialiased;-webkit-tap-highlight-color:transparent;overscroll-behavior:none}
-#app{max-width:800px;margin:0 auto;padding:16px;display:flex;flex-direction:column;gap:16px;min-height:100dvh}
+html,body{height:100%;font-family:-apple-system,BlinkMacSystemFont,'Inter','SF Pro Display','Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(--text);-webkit-font-smoothing:antialiased;-webkit-tap-highlight-color:transparent;overscroll-behavior:none;letter-spacing:-.01em}
+body{background-image:radial-gradient(ellipse 80% 50% at 20% 0%,rgba(124,58,237,0.15),transparent),radial-gradient(ellipse 60% 50% at 80% 100%,rgba(0,212,255,0.1),transparent);background-attachment:fixed}
+#app{max-width:880px;margin:0 auto;padding:16px;display:flex;flex-direction:column;gap:18px;min-height:100dvh}
 
 /* Header */
-header{display:flex;align-items:center;justify-content:space-between;padding:12px 0}
-header h1{font-size:20px;font-weight:700;background:linear-gradient(135deg,var(--accent),var(--purple));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
-.header-actions{display:flex;gap:8px}
-.btn{display:inline-flex;align-items:center;gap:6px;padding:8px 16px;border:none;border-radius:50px;font-size:14px;font-weight:600;cursor:pointer;transition:all .2s}
-.btn-primary{background:linear-gradient(135deg,var(--accent),#0891b2);color:#000;box-shadow:0 0 20px var(--accent-glow)}
-.btn-primary:hover{transform:translateY(-1px);box-shadow:0 0 30px var(--accent-glow)}
+header{display:flex;align-items:center;justify-content:space-between;padding:14px 0 4px}
+.brand{display:flex;align-items:center;gap:12px}
+.brand-logo{width:40px;height:40px;border-radius:12px;background:linear-gradient(135deg,var(--accent),var(--accent-2));display:flex;align-items:center;justify-content:center;font-size:20px;box-shadow:0 0 24px rgba(0,212,255,0.3);position:relative;overflow:hidden}
+.brand-logo::after{content:'';position:absolute;inset:0;background:linear-gradient(135deg,transparent 50%,rgba(255,255,255,0.2))}
+.brand-text{display:flex;flex-direction:column}
+.brand-name{font-size:18px;font-weight:700;letter-spacing:-.02em;background:linear-gradient(135deg,#fff,var(--text-dim));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.brand-sub{font-size:11px;color:var(--text-muted);font-weight:500;letter-spacing:.04em;text-transform:uppercase}
+.header-actions{display:flex;gap:8px;align-items:center}
+.btn{display:inline-flex;align-items:center;gap:6px;padding:9px 16px;border:none;border-radius:50px;font-size:13px;font-weight:600;cursor:pointer;transition:all .2s;letter-spacing:-.01em;font-family:inherit}
+.btn-primary{background:linear-gradient(135deg,var(--accent),#0891b2);color:#000;box-shadow:0 4px 16px rgba(0,212,255,0.3)}
+.btn-primary:hover{transform:translateY(-1px);box-shadow:0 6px 24px rgba(0,212,255,0.45)}
 .btn-ghost{background:var(--surface);color:var(--text);border:1px solid var(--border)}
-.btn-ghost:hover{background:var(--surface-hover)}
+.btn-ghost:hover{background:var(--surface-hover);border-color:var(--border-bright)}
 .btn-sm{padding:6px 12px;font-size:12px}
-.btn-icon{width:36px;height:36px;padding:0;display:flex;align-items:center;justify-content:center;border-radius:50%;background:var(--surface);border:1px solid var(--border);color:var(--text);cursor:pointer;transition:all .2s;font-size:16px}
-.btn-icon:hover{background:var(--surface-hover)}
-.btn-danger{background:var(--red);color:#fff}
-.btn-danger:hover{opacity:.9}
-.sync-indicator{display:inline-flex;align-items:center;gap:4px;font-size:11px;padding:4px 10px;border-radius:50px;background:var(--surface);border:1px solid var(--border);color:var(--text-dim);cursor:default}
-.sync-indicator.synced{color:var(--green);border-color:rgba(16,185,129,0.3)}
+.btn-icon{width:38px;height:38px;padding:0;display:flex;align-items:center;justify-content:center;border-radius:50%;background:var(--surface);border:1px solid var(--border);color:var(--text);cursor:pointer;transition:all .2s;font-size:15px;backdrop-filter:blur(8px)}
+.btn-icon:hover{background:var(--surface-hover);border-color:var(--border-bright)}
+.btn-danger{background:rgba(239,68,68,0.15);color:var(--red);border:1px solid rgba(239,68,68,0.3)}
+.btn-danger:hover{background:rgba(239,68,68,0.25)}
+.btn-grad{background:linear-gradient(135deg,var(--accent-2),var(--accent-3));color:#fff;box-shadow:0 4px 16px rgba(124,58,237,0.3)}
+.btn-grad:hover{transform:translateY(-1px);box-shadow:0 6px 24px rgba(124,58,237,0.45)}
+.sync-indicator{display:inline-flex;align-items:center;gap:5px;font-size:11px;padding:6px 10px;border-radius:50px;background:var(--surface);border:1px solid var(--border);color:var(--text-dim);font-weight:600;letter-spacing:.02em}
+.sync-indicator.synced{color:var(--green);border-color:rgba(16,185,129,0.3);background:rgba(16,185,129,0.08)}
+.sync-indicator.syncing{color:var(--accent);border-color:rgba(0,212,255,0.3)}
 
 /* Month Nav */
 .month-nav{display:flex;align-items:center;justify-content:space-between;padding:8px 0}
-.month-nav .month-title{font-size:18px;font-weight:600}
-.month-nav .month-controls{display:flex;gap:4px;align-items:center}
-.month-nav .month-controls button{width:36px;height:36px;border-radius:50%;border:1px solid var(--border);background:var(--surface);color:var(--text);cursor:pointer;font-size:16px;transition:all .2s}
-.month-nav .month-controls button:hover{background:var(--surface-hover)}
-.month-nav .month-controls .today-btn{padding:6px 14px;border-radius:50px;font-size:12px;font-weight:600;border:1px solid var(--accent);background:transparent;color:var(--accent);cursor:pointer;transition:all .2s}
-.month-nav .month-controls .today-btn:hover{background:var(--accent-glow)}
+.month-title{font-size:22px;font-weight:700;letter-spacing:-.02em}
+.month-controls{display:flex;gap:6px;align-items:center}
+.month-controls button{width:36px;height:36px;border-radius:50%;border:1px solid var(--border);background:var(--surface);color:var(--text);cursor:pointer;font-size:13px;transition:all .2s;font-family:inherit}
+.month-controls button:hover{background:var(--surface-hover);border-color:var(--border-bright)}
+.month-controls .today-btn{padding:6px 14px;border-radius:50px;font-size:12px;font-weight:600;border:1px solid var(--border-bright);background:var(--surface);color:var(--text);cursor:pointer;transition:all .2s;font-family:inherit}
+.month-controls .today-btn:hover{background:var(--surface-hover)}
 
-/* Calendar Grid */
-.calendar-wrap{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:12px;overflow:hidden}
-.calendar-header{display:grid;grid-template-columns:repeat(7,1fr);gap:2px;margin-bottom:8px}
-.calendar-header div{text-align:center;font-size:11px;font-weight:600;color:var(--text-dim);text-transform:uppercase;letter-spacing:.5px;padding:6px 0}
-.calendar-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:2px}
-.cal-day{aspect-ratio:1;display:flex;flex-direction:column;align-items:center;justify-content:center;border-radius:var(--radius-sm);cursor:pointer;transition:all .15s;position:relative;min-height:44px;background:transparent;border:1px solid transparent}
+/* Calendar */
+.calendar-wrap{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:14px;backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px)}
+.calendar-header{display:grid;grid-template-columns:repeat(7,1fr);gap:2px;margin-bottom:6px}
+.calendar-header div{text-align:center;font-size:11px;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:.08em;padding:8px 0}
+.calendar-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:3px}
+.cal-day{aspect-ratio:1;display:flex;flex-direction:column;align-items:center;justify-content:center;border-radius:10px;cursor:pointer;transition:all .15s;position:relative;min-height:48px;background:transparent;border:1px solid transparent;gap:4px}
 .cal-day:hover{background:var(--surface-hover)}
-.cal-day.other-month{opacity:.2}
-.cal-day.today{border-color:var(--accent)}
-.cal-day.selected{background:rgba(0,212,255,0.15);border-color:var(--accent)}
+.cal-day.other-month{opacity:.25}
+.cal-day.today{border-color:rgba(0,212,255,0.4);background:rgba(0,212,255,0.05)}
+.cal-day.selected{background:linear-gradient(135deg,rgba(0,212,255,0.18),rgba(124,58,237,0.12));border-color:var(--accent);box-shadow:0 0 0 1px rgba(0,212,255,0.3)}
 .cal-day .day-num{font-size:14px;font-weight:500;line-height:1}
-.cal-day .day-dot{width:5px;height:5px;border-radius:50%;background:var(--accent);margin-top:3px;box-shadow:0 0 6px var(--accent-glow)}
-.cal-day .day-count{position:absolute;top:2px;right:2px;font-size:9px;background:var(--accent);color:#000;border-radius:50%;width:16px;height:16px;display:flex;align-items:center;justify-content:center;font-weight:700}
+.cal-day.today .day-num{color:var(--accent);font-weight:700}
+.cal-day .session-dots{display:flex;gap:2px;align-items:center;justify-content:center;min-height:6px}
+.cal-day .dot{width:5px;height:5px;border-radius:50%}
+.dot-inhouse{background:var(--green);box-shadow:0 0 6px rgba(16,185,129,0.6)}
+.dot-outsource{background:var(--amber);box-shadow:0 0 6px rgba(245,158,11,0.6)}
+.cal-day .day-count{position:absolute;top:4px;right:4px;font-size:9px;background:var(--accent);color:#000;border-radius:50%;width:16px;height:16px;display:flex;align-items:center;justify-content:center;font-weight:700}
 
 /* Day Detail */
-.day-detail{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px}
-.day-detail .day-title{font-size:15px;font-weight:600;margin-bottom:12px;display:flex;align-items:center;justify-content:space-between}
-.day-detail .empty-state{text-align:center;padding:24px 0;color:var(--text-dim);font-size:14px}
-.course-card{background:var(--bg);border:1px solid var(--border);border-radius:var(--radius-sm);padding:12px;margin-bottom:8px;cursor:pointer;transition:all .2s}
-.course-card:hover{border-color:var(--accent);box-shadow:0 0 15px var(--accent-glow)}
-.course-card:last-child{margin-bottom:0}
-.course-card .course-name{font-size:15px;font-weight:600;margin-bottom:4px}
-.course-card .course-meta{display:flex;flex-wrap:wrap;gap:6px;font-size:12px;color:var(--text-dim)}
-.course-card .course-meta span{display:inline-flex;align-items:center;gap:4px}
-.badge{display:inline-flex;align-items:center;padding:2px 8px;border-radius:50px;font-size:11px;font-weight:600}
-.badge-inhouse{background:rgba(16,185,129,0.15);color:var(--green);border:1px solid rgba(16,185,129,0.3)}
-.badge-outsource{background:rgba(245,158,11,0.15);color:var(--amber);border:1px solid rgba(245,158,11,0.3)}
-.badge-venue{background:rgba(124,58,237,0.15);color:var(--purple);border:1px solid rgba(124,58,237,0.3)}
+.day-detail{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:18px;backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px)}
+.day-detail-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+.day-title{font-size:15px;font-weight:600;letter-spacing:-.01em}
+.day-title .day-sub{font-size:11px;color:var(--text-muted);font-weight:500;margin-left:8px;letter-spacing:.04em;text-transform:uppercase}
+.empty-state{text-align:center;padding:32px 16px;color:var(--text-muted);font-size:13px}
+.empty-state-icon{font-size:32px;margin-bottom:8px;opacity:.4}
+.session-card{background:var(--bg-2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:14px;margin-bottom:10px;cursor:pointer;transition:all .2s;position:relative;overflow:hidden}
+.session-card:last-child{margin-bottom:0}
+.session-card:hover{border-color:var(--border-bright);transform:translateY(-1px)}
+.session-card::before{content:'';position:absolute;top:0;left:0;width:3px;height:100%;background:linear-gradient(180deg,var(--accent),var(--accent-2))}
+.session-card.course-pending::before{background:linear-gradient(180deg,var(--amber),#d97706)}
+.session-name{font-size:15px;font-weight:600;margin-bottom:6px;letter-spacing:-.01em}
+.session-meta{display:flex;flex-wrap:wrap;gap:6px;font-size:12px}
+.badge{display:inline-flex;align-items:center;gap:4px;padding:3px 9px;border-radius:50px;font-size:11px;font-weight:600;letter-spacing:.01em}
+.badge-inhouse{background:rgba(16,185,129,0.12);color:var(--green);border:1px solid rgba(16,185,129,0.25)}
+.badge-outsource{background:rgba(245,158,11,0.12);color:var(--amber);border:1px solid rgba(245,158,11,0.25)}
+.badge-venue{background:rgba(124,58,237,0.12);color:#a78bfa;border:1px solid rgba(124,58,237,0.25)}
+.badge-pending{background:rgba(245,158,11,0.12);color:var(--amber);border:1px solid rgba(245,158,11,0.25)}
+.badge-time{background:rgba(255,255,255,0.06);color:var(--text-dim);border:1px solid var(--border)}
+.badge-day{background:linear-gradient(135deg,rgba(0,212,255,0.15),rgba(124,58,237,0.15));color:var(--accent);border:1px solid rgba(0,212,255,0.25)}
+
+/* Courses list (toggle view) */
+.courses-list{display:flex;flex-direction:column;gap:10px}
+.course-row{background:var(--bg-2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:14px;transition:all .2s}
+.course-row:hover{border-color:var(--border-bright)}
+.course-row-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;gap:8px}
+.course-row-name{font-size:15px;font-weight:600;letter-spacing:-.01em}
+.course-row-actions{display:flex;gap:4px}
+.icon-btn{width:30px;height:30px;border-radius:8px;border:1px solid var(--border);background:var(--surface);color:var(--text-dim);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:13px;transition:all .15s;font-family:inherit}
+.icon-btn:hover{background:var(--surface-hover);color:var(--text)}
+.icon-btn.danger:hover{background:rgba(239,68,68,0.15);color:var(--red);border-color:rgba(239,68,68,0.3)}
+.course-sessions{display:flex;flex-direction:column;gap:6px}
+.course-session-item{display:flex;align-items:center;gap:8px;padding:8px 10px;background:var(--surface);border-radius:8px;font-size:13px;border:1px solid transparent;transition:all .15s}
+.course-session-item:hover{background:var(--surface-hover);border-color:var(--border)}
+.session-date{font-weight:600;color:var(--accent);min-width:88px}
+.session-info{flex:1;display:flex;flex-wrap:wrap;gap:4px;align-items:center}
 
 /* Modal */
-.modal-overlay{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.7);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);display:flex;align-items:center;justify-content:center;z-index:100;padding:16px;opacity:0;pointer-events:none;transition:opacity .25s}
+.modal-overlay{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.7);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);display:flex;align-items:center;justify-content:center;z-index:100;padding:16px;opacity:0;pointer-events:none;transition:opacity .25s}
 .modal-overlay.active{opacity:1;pointer-events:auto}
-.modal{background:var(--bg);border:1px solid var(--border);border-radius:var(--radius);padding:24px;width:100%;max-width:420px;max-height:90dvh;overflow-y:auto;box-shadow:0 0 60px rgba(0,212,255,0.1)}
-.modal h2{font-size:18px;font-weight:700;margin-bottom:20px;background:linear-gradient(135deg,var(--accent),var(--purple));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.modal{background:var(--bg-2);border:1px solid var(--border);border-radius:var(--radius);padding:24px;width:100%;max-width:480px;max-height:90dvh;overflow-y:auto;box-shadow:0 0 80px rgba(0,212,255,0.1),0 24px 48px rgba(0,0,0,0.4)}
+.modal h2{font-size:18px;font-weight:700;margin-bottom:6px;letter-spacing:-.02em}
+.modal-sub{font-size:12px;color:var(--text-muted);margin-bottom:20px;letter-spacing:.02em}
 .form-group{margin-bottom:14px}
-.form-group label{display:block;font-size:12px;font-weight:600;color:var(--text-dim);margin-bottom:4px;text-transform:uppercase;letter-spacing:.5px}
-.form-group input,.form-group select,.form-group textarea{width:100%;padding:10px 12px;border-radius:var(--radius-sm);border:1px solid var(--border);background:var(--surface);color:var(--text);font-size:14px;transition:border-color .2s;font-family:inherit}
-.form-group input:focus,.form-group select:focus,.form-group textarea:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-glow)}
+.form-group label{display:block;font-size:11px;font-weight:600;color:var(--text-dim);margin-bottom:6px;text-transform:uppercase;letter-spacing:.06em}
+.form-group input,.form-group select,.form-group textarea{width:100%;padding:11px 14px;border-radius:var(--radius-sm);border:1px solid var(--border);background:var(--surface);color:var(--text);font-size:14px;transition:all .2s;font-family:inherit;letter-spacing:-.01em}
+.form-group input:focus,.form-group select:focus,.form-group textarea:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px rgba(0,212,255,0.15);background:var(--surface-2)}
 .form-group textarea{resize:vertical;min-height:60px;max-height:120px}
-.form-group select{cursor:pointer;-webkit-appearance:none;appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center;padding-right:36px}
+.form-group select{cursor:pointer;-webkit-appearance:none;appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2394a3b8' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 14px center;padding-right:36px}
 .form-group input[type="date"]{-webkit-appearance:none}
 .form-row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 .form-actions{display:flex;gap:8px;margin-top:20px}
 .form-actions .btn{flex:1;justify-content:center}
 
-/* Venues */
-.venue-section{margin-top:12px}
-.venue-section summary{cursor:pointer;color:var(--text-dim);font-size:13px;font-weight:600}
-.venue-list{padding:8px 0;display:flex;flex-wrap:wrap;gap:6px}
-.venue-tag{display:inline-flex;align-items:center;gap:4px;padding:4px 10px;border-radius:50px;font-size:12px;background:var(--surface);border:1px solid var(--border)}
-.venue-tag .remove-venue{width:16px;height:16px;border-radius:50%;border:none;background:var(--red);color:#fff;font-size:10px;cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0;line-height:1}
+/* Sessions builder inside course modal */
+.sessions-builder{margin-top:8px}
+.sessions-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+.sessions-head-title{font-size:12px;font-weight:600;color:var(--text-dim);text-transform:uppercase;letter-spacing:.06em}
+.session-form{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-sm);padding:12px;margin-bottom:8px;position:relative}
+.session-form .remove-session{position:absolute;top:8px;right:8px;width:24px;height:24px;border-radius:50%;border:none;background:rgba(239,68,68,0.15);color:var(--red);cursor:pointer;font-size:11px;display:flex;align-items:center;justify-content:center}
+.session-form .remove-session:hover{background:rgba(239,68,68,0.25)}
+.add-session-btn{width:100%;padding:10px;border:1.5px dashed var(--border-bright);border-radius:var(--radius-sm);background:transparent;color:var(--text-dim);cursor:pointer;font-size:13px;font-weight:500;transition:all .2s;font-family:inherit}
+.add-session-btn:hover{border-color:var(--accent);color:var(--accent);background:rgba(0,212,255,0.05)}
+
+/* Venue tags */
+.venue-section{margin-top:8px}
+.venue-section summary{cursor:pointer;color:var(--text-dim);font-size:13px;font-weight:600;list-style:none}
+.venue-section summary::before{content:'📍 ';margin-right:4px}
+.venue-list{padding:10px 0;display:flex;flex-wrap:wrap;gap:6px}
+.venue-tag{display:inline-flex;align-items:center;gap:4px;padding:5px 10px;border-radius:50px;font-size:12px;background:var(--surface);border:1px solid var(--border);font-weight:500}
+.venue-tag .remove-venue{width:16px;height:16px;border-radius:50%;border:none;background:var(--red);color:#fff;font-size:10px;cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0;line-height:1;margin-left:2px}
 .venue-input-row{display:flex;gap:6px;margin-top:8px}
-.venue-input-row input{flex:1;padding:8px 12px;border-radius:50px;border:1px solid var(--border);background:var(--surface);color:var(--text);font-size:13px}
+.venue-input-row input{flex:1;padding:9px 12px;border-radius:50px;border:1px solid var(--border);background:var(--surface);color:var(--text);font-size:13px;font-family:inherit}
 .venue-input-row input:focus{outline:none;border-color:var(--accent)}
-.venue-input-row button{padding:8px 14px;border-radius:50px;border:none;background:var(--accent);color:#000;font-weight:600;font-size:12px;cursor:pointer}
+.venue-input-row button{padding:9px 14px;border-radius:50px;border:none;background:var(--accent);color:#000;font-weight:700;font-size:12px;cursor:pointer;transition:all .15s;font-family:inherit}
+.venue-input-row button:hover{box-shadow:0 0 16px rgba(0,212,255,0.4)}
 
-/* Delete confirm */
-.delete-confirm{background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.3);border-radius:var(--radius-sm);padding:12px;margin-bottom:14px;display:flex;align-items:center;gap:8px;font-size:13px;color:var(--red)}
+.delete-confirm{background:rgba(239,68,68,0.08);border:1px solid rgba(239,68,68,0.2);border-radius:var(--radius-sm);padding:12px;margin-bottom:14px;display:flex;align-items:center;gap:8px;font-size:13px;color:var(--red)}
 
-/* Toast */
-.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);padding:10px 20px;border-radius:50px;font-size:13px;font-weight:600;z-index:200;opacity:0;transition:opacity .3s;pointer-events:none}
-.toast.show{opacity:1}
-.toast-success{background:rgba(16,185,129,0.9);color:#fff}
-.toast-error{background:rgba(239,68,68,0.9);color:#fff}
+.toast{position:fixed;bottom:80px;left:50%;transform:translateX(-50%) translateY(20px);padding:10px 20px;border-radius:50px;font-size:13px;font-weight:600;z-index:200;opacity:0;transition:all .3s;pointer-events:none;backdrop-filter:blur(12px);border:1px solid var(--border)}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+.toast-success{background:rgba(16,185,129,0.9);color:#fff;border-color:rgba(16,185,129,0.4)}
+.toast-error{background:rgba(239,68,68,0.9);color:#fff;border-color:rgba(239,68,68,0.4)}
+.toast-info{background:rgba(0,212,255,0.9);color:#000;border-color:rgba(0,212,255,0.4)}
 
-/* Responsive */
+/* View tabs */
+.view-tabs{display:flex;gap:4px;padding:4px;background:var(--surface);border-radius:50px;border:1px solid var(--border);width:fit-content;margin:0 auto}
+.view-tab{padding:7px 16px;border-radius:50px;font-size:12px;font-weight:600;cursor:pointer;color:var(--text-dim);transition:all .2s;font-family:inherit;background:transparent;border:none}
+.view-tab.active{background:linear-gradient(135deg,var(--accent),var(--accent-2));color:#fff;box-shadow:0 2px 12px rgba(0,212,255,0.3)}
+
 @media(max-width:480px){
-  #app{padding:12px}
-  header h1{font-size:17px}
-  .cal-day{min-height:38px}
+  #app{padding:12px;gap:14px}
+  .brand-name{font-size:16px}
+  .brand-sub{display:none}
+  .cal-day{min-height:42px}
   .cal-day .day-num{font-size:12px}
-  .modal{padding:16px}
+  .month-title{font-size:18px}
+  .modal{padding:18px}
   .form-row{grid-template-columns:1fr}
-}
-@media(min-width:600px){
-  .course-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+  .session-date{min-width:80px}
 }
 </style>
 </head>
 <body>
 <div id="app">
   <header>
-    <h1>📅 Angus Scheduler</h1>
+    <div class="brand">
+      <div class="brand-logo">📅</div>
+      <div class="brand-text">
+        <span class="brand-name">Angus Scheduler</span>
+        <span class="brand-sub">OE Course Management</span>
+      </div>
+    </div>
     <div class="header-actions">
-      <button class="btn-icon" id="manageVenuesBtn" title="管理场地">📍</button>
-      <span class="sync-indicator" id="syncIndicator" title="同步状态">○ 本地</span>
+      <span class="sync-indicator" id="syncIndicator">○ 本地</span>
+      <button class="btn-icon" id="manageVenuesBtn" title="场地">📍</button>
       <button class="btn-icon" id="settingsBtn" title="设置">⚙️</button>
-      <button class="btn btn-primary" id="addBtn">+ 新增课程</button>
+      <button class="btn btn-grad" id="addBtn">+ 新建课程</button>
     </div>
   </header>
 
-  <div class="month-nav">
-    <span class="month-title" id="monthTitle">July 2026</span>
-    <div class="month-controls">
-      <button class="today-btn" id="todayBtn">今天</button>
-      <button id="prevMonthBtn">◀</button>
-      <button id="nextMonthBtn">▶</button>
+  <div class="view-tabs">
+    <button class="view-tab active" data-view="calendar">📅 日历</button>
+    <button class="view-tab" data-view="courses">📋 课程列表</button>
+  </div>
+
+  <div id="calendarView">
+    <div class="month-nav">
+      <span class="month-title" id="monthTitle">July 2026</span>
+      <div class="month-controls">
+        <button class="today-btn" id="todayBtn">今天</button>
+        <button id="prevMonthBtn">◀</button>
+        <button id="nextMonthBtn">▶</button>
+      </div>
+    </div>
+    <div class="calendar-wrap">
+      <div class="calendar-header" id="calHeader"></div>
+      <div class="calendar-grid" id="calGrid"></div>
+    </div>
+    <div class="day-detail">
+      <div class="day-detail-head">
+        <div class="day-title">
+          <span id="selectedDateTitle">选择一个日期</span>
+          <span class="day-sub" id="selectedDateSub"></span>
+        </div>
+      </div>
+      <div class="empty-state" id="emptyState">
+        <div class="empty-state-icon">🗓️</div>
+        <div>点击日历上的日期查看课程</div>
+      </div>
+      <div id="sessionsContainer"></div>
     </div>
   </div>
 
-  <div class="calendar-wrap">
-    <div class="calendar-header" id="calHeader"></div>
-    <div class="calendar-grid" id="calGrid"></div>
-  </div>
-
-  <div class="day-detail" id="dayDetail">
-    <div class="day-title">
-      <span id="selectedDateTitle">选择一个日期</span>
+  <div id="coursesView" style="display:none">
+    <div class="day-detail">
+      <div class="day-detail-head">
+        <div class="day-title">所有课程</div>
+      </div>
+      <div id="allCoursesList"></div>
     </div>
-    <div class="empty-state" id="emptyState">点击日历上的日期查看课程</div>
-    <div id="coursesContainer"></div>
   </div>
 </div>
 
 <!-- Course Modal -->
 <div class="modal-overlay" id="courseModal">
   <div class="modal">
-    <h2 id="modalTitle">新增课程</h2>
+    <h2 id="modalTitle">新建课程</h2>
+    <div class="modal-sub">先创建课程，再为每个场次设定场地和 AV</div>
     <form id="courseForm" autocomplete="off">
       <input type="hidden" id="editId" value="">
       <div class="form-group">
         <label>课程名称</label>
         <input type="text" id="courseName" placeholder="如：5A团队成交系统" required>
       </div>
-      <div class="form-row">
-        <div class="form-group">
-          <label>日期</label>
-          <input type="date" id="courseDate" required>
-        </div>
-        <div class="form-group">
-          <label>时间</label>
-          <input type="text" id="courseTime" placeholder="9:00am - 6:00pm">
-        </div>
-      </div>
-      <div class="form-group">
-        <label>场地</label>
-        <select id="courseVenue">
-          <option value="OE Ballroom">🏠 OE Ballroom</option>
-          <option value="MDMT Ballroom">🏠 MDMT Ballroom</option>
-          <option value="__custom__">➕ 其他场地...</option>
-        </select>
-      </div>
-      <div class="form-group" id="customVenueGroup" style="display:none">
-        <label>输入外部场地名称</label>
-        <input type="text" id="customVenueInput" placeholder="如：吉隆坡万豪酒店">
-      </div>
-      <div class="form-group">
-        <label>AV 系统</label>
-        <select id="courseAvType">
-          <option value="inhouse">🎤 Inhouse AV</option>
-          <option value="outsource">📡 Outsource AV</option>
-        </select>
-      </div>
       <div class="form-group">
         <label>备注</label>
-        <textarea id="courseNotes" placeholder="额外信息..."></textarea>
+        <textarea id="courseNotes" placeholder="可选：教练、学员数、特殊要求..."></textarea>
       </div>
+
+      <div class="sessions-builder">
+        <div class="sessions-head">
+          <span class="sessions-head-title">📅 场次安排（每个场次独立设场地和 AV）</span>
+        </div>
+        <div id="sessionsList"></div>
+        <button type="button" class="add-session-btn" id="addSessionBtn">+ 添加场次</button>
+      </div>
+
       <div id="deleteSection" style="display:none">
-        <div class="delete-confirm">⚠️ 删除后无法恢复</div>
+        <div class="delete-confirm">⚠️ 删除课程将同时删除其所有场次</div>
       </div>
       <div class="form-actions">
         <button type="button" class="btn btn-ghost" id="modalCancel">取消</button>
-        <button type="submit" class="btn btn-primary" id="modalSave">保存</button>
+        <button type="submit" class="btn btn-primary" id="modalSave">保存课程</button>
       </div>
     </form>
   </div>
@@ -230,20 +293,23 @@ header h1{font-size:20px;font-weight:700;background:linear-gradient(135deg,var(-
 <div class="modal-overlay" id="venueModal">
   <div class="modal">
     <h2>📍 场地管理</h2>
+    <div class="modal-sub">管理可用的场地（外部场地）</div>
     <div class="venue-section">
-      <div style="font-size:13px;color:var(--text-dim);margin-bottom:8px">自有两个场地（不可删除）</div>
-      <div class="venue-list">
-        <span class="venue-tag">🏠 OE Ballroom</span>
-        <span class="venue-tag">🏠 MDMT Ballroom</span>
-      </div>
-    </div>
-    <div class="venue-section" style="margin-top:16px">
-      <div style="font-size:13px;color:var(--text-dim);margin-bottom:8px">外部场地</div>
-      <div class="venue-list" id="externalVenuesList"></div>
-      <div class="venue-input-row">
-        <input type="text" id="newVenueInput" placeholder="添加外部场地...">
-        <button id="addVenueBtn">添加</button>
-      </div>
+      <details open>
+        <summary>自有两个场地</summary>
+        <div class="venue-list">
+          <span class="venue-tag">🏠 OE Ballroom</span>
+          <span class="venue-tag">🏠 MDMT Ballroom</span>
+        </div>
+      </details>
+      <details open style="margin-top:14px">
+        <summary>外部场地</summary>
+        <div class="venue-list" id="externalVenuesList"></div>
+        <div class="venue-input-row">
+          <input type="text" id="newVenueInput" placeholder="添加外部场地名称...">
+          <button id="addVenueBtn">添加</button>
+        </div>
+      </details>
     </div>
     <div class="form-actions" style="margin-top:20px">
       <button class="btn btn-ghost" id="venueModalClose" style="flex:1;justify-content:center">完成</button>
@@ -255,24 +321,21 @@ header h1{font-size:20px;font-weight:700;background:linear-gradient(135deg,var(-
 <div class="modal-overlay" id="settingsModal">
   <div class="modal">
     <h2>⚙️ 设置</h2>
-    <div style="margin-bottom:16px">
-      <div style="font-size:13px;color:var(--text-dim);margin-bottom:8px">GitHub Gist 自动同步</div>
-      <div style="font-size:12px;color:var(--text-dim);margin-bottom:12px;line-height:1.5">
-        数据自动同步到 GitHub Gist，所有设备共享同一份数据。<br>
-        需要 GitHub Personal Access Token（仅需 <code style="background:var(--surface);padding:1px 6px;border-radius:4px;font-size:11px">gist</code> 权限）。
-      </div>
-      <div class="form-group">
-        <label>GitHub Token</label>
-        <input type="password" id="githubTokenInput" placeholder="ghp_xxxxxxxxxxxx" autocomplete="off">
-      </div>
-      <div id="syncStatus" style="font-size:12px;color:var(--text-dim);margin-bottom:10px;min-height:18px"></div>
-      <div class="form-actions" style="gap:8px">
-        <button class="btn btn-primary" id="connectSyncBtn" style="flex:1;justify-content:center">连接同步</button>
-        <button class="btn btn-ghost" id="disconnectSyncBtn" style="flex:1;justify-content:center;display:none">断开同步</button>
-      </div>
-      <div style="margin-top:10px;display:none" id="syncActions">
-        <button class="btn btn-ghost btn-sm" id="manualSyncBtn" style="width:100%;justify-content:center">🔄 立即同步</button>
-      </div>
+    <div class="modal-sub">GitHub Gist 跨设备同步</div>
+    <div style="font-size:12px;color:var(--text-dim);margin-bottom:14px;line-height:1.6;background:var(--surface);padding:12px;border-radius:var(--radius-sm);border:1px solid var(--border)">
+      数据自动同步到 GitHub Gist，所有设备共享同一份数据。需要 GitHub Personal Access Token（仅需 <code style="background:var(--bg-2);padding:1px 6px;border-radius:4px;font-size:11px;color:var(--accent)">gist</code> 权限）。
+    </div>
+    <div class="form-group">
+      <label>GitHub Token</label>
+      <input type="password" id="githubTokenInput" placeholder="ghp_xxxxxxxxxxxx" autocomplete="off">
+    </div>
+    <div id="syncStatus" style="font-size:12px;color:var(--text-dim);margin-bottom:12px;min-height:18px;font-weight:500"></div>
+    <div class="form-actions" style="gap:8px">
+      <button class="btn btn-primary" id="connectSyncBtn" style="flex:1;justify-content:center">连接同步</button>
+      <button class="btn btn-ghost" id="disconnectSyncBtn" style="flex:1;justify-content:center;display:none">断开同步</button>
+    </div>
+    <div style="margin-top:10px;display:none" id="syncActions">
+      <button class="btn btn-ghost btn-sm" id="manualSyncBtn" style="width:100%;justify-content:center">🔄 立即同步</button>
     </div>
     <div class="form-actions" style="margin-top:8px">
       <button class="btn btn-ghost" id="settingsModalClose" style="flex:1;justify-content:center">关闭</button>
@@ -286,19 +349,17 @@ header h1{font-size:20px;font-weight:700;background:linear-gradient(135deg,var(-
 const DB_NAME='AngusSchedulerDB',DB_VER=1,STORE='courses',VENUE_STORE='venues';
 
 // ==== IndexedDB ====
-function openDB(){return new Promise((res,rej)=>{const r=indexedDB.open(DB_NAME,DB_VER);r.onupgradeneeded=e=>{const db=e.target.result;if(!db.objectStoreNames.contains(STORE)){const s=db.createObjectStore(STORE,{keyPath:'id',autoIncrement:true});s.createIndex('date','date',{unique:false});s.createIndex('venue','venue',{unique:false})}if(!db.objectStoreNames.contains(VENUE_STORE))db.createObjectStore(VENUE_STORE,{keyPath:'name'})};r.onsuccess=e=>res(e.target.result);r.onerror=e=>rej(e.target.error)})}
-
+function openDB(){return new Promise((res,rej)=>{const r=indexedDB.open(DB_NAME,DB_VER);r.onupgradeneeded=e=>{const db=e.target.result;if(!db.objectStoreNames.contains(STORE)){const s=db.createObjectStore(STORE,{keyPath:'id',autoIncrement:true});s.createIndex('updatedAt','updatedAt',{unique:false})}if(!db.objectStoreNames.contains(VENUE_STORE))db.createObjectStore(VENUE_STORE,{keyPath:'name'})};r.onsuccess=e=>res(e.target.result);r.onerror=e=>rej(e.target.error)})}
 async function dbOp(store,fn){const db=await openDB();const tx=db.transaction(store,'readwrite');const s=tx.objectStore(store);const r=fn(s);return new Promise((res,rej)=>{tx.oncomplete=()=>res(r);tx.onerror=e=>rej(e.target.error)})}
-async function dbGet(store,id){return dbOp(store,s=>{const r=s.get(id);return new Promise((res,rej)=>{r.onsuccess=()=>res(r.result);r.onerror=rej})})}
 async function dbGetAll(store){return dbOp(store,s=>{const r=s.getAll();return new Promise((res,rej)=>(r.onsuccess=()=>res(r.result||[]),r.onerror=rej))})}
-async function dbGetByIndex(store,idx,val){const db=await openDB();const tx=db.transaction(store,'readonly');const s=tx.objectStore(store);const index=s.index(idx);const r=index.getAll(val);return new Promise((res,rej)=>(r.onsuccess=()=>res(r.result||[]),r.onerror=rej))}
 async function dbPut(store,obj){return dbOp(store,s=>{const r=s.put(obj);return new Promise((res,rej)=>(r.onsuccess=()=>res(r.result),r.onerror=rej))})}
 async function dbDel(store,id){return dbOp(store,s=>{s.delete(id)})}
+async function dbDelAll(store){return dbOp(store,s=>{s.clear()})}
 
 // ==== State ====
-let courses=[],venues=[],currentDate=new Date(),selectedDate=null;
+let courses=[],venues=[],currentDate=new Date(),selectedDate=null,currentView='calendar';
 const MONTHS=['January','February','March','April','May','June','July','August','September','October','November','December'];
-const DAYS=['Su','Mo','Tu','We','Th','Fr','Sa'];
+const DAYS=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
 const BUILTIN_VENUES=['OE Ballroom','MDMT Ballroom'];
 const GIST_FILE='angus-scheduler-data.json';
 let syncToken=localStorage.getItem('gh_sync_token')||'';
@@ -308,61 +369,87 @@ let syncing=false;
 
 function fmtDate(d){const y=d.getFullYear(),m=String(d.getMonth()+1).padStart(2,'0'),day=String(d.getDate()).padStart(2,'0');return`${y}-${m}-${day}`}
 function parseDate(s){const p=s.split('-');return new Date(+p[0],+p[1]-1,+p[2])}
-
-// ==== Venue Management ====
 function isBuiltin(v){return BUILTIN_VENUES.includes(v)}
+
+// ==== Venues ====
 async function loadVenues(){const v=await dbGetAll(VENUE_STORE);venues=v.map(v=>v.name).filter(n=>!isBuiltin(n))}
-async function addVenue(name){name=name.trim();if(!name||isBuiltin(name)||venues.includes(name))return;await dbPut(VENUE_STORE,{name});venues.push(name);renderVenueModal();renderCourseForm()}  
-async function removeVenue(name){if(isBuiltin(name))return;await dbDel(VENUE_STORE,name);venues=venues.filter(v=>v!==name);renderVenueModal();renderCourseForm();renderCalendar();syncPush()}
+async function addVenue(name){name=name.trim();if(!name||isBuiltin(name)||venues.includes(name))return;await dbPut(VENUE_STORE,{name});venues.push(name);renderVenueModal()}
+async function removeVenue(name){if(isBuiltin(name))return;await dbDel(VENUE_STORE,name);venues=venues.filter(v=>v!==name);renderVenueModal();renderCoursesView();syncPush()}
 
-// ==== Course CRUD ====
-async function loadCourses(){courses=await dbGetAll(STORE)}
-async function saveCourse(c){return dbPut(STORE,c)}
+// ==== Courses ====
+async function loadCourses(){courses=await dbGetAll(STORE);courses.sort((a,b)=>(b.updatedAt||0)-(a.updatedAt||0))}
+async function saveCourse(c){c.updatedAt=Date.now();return dbPut(STORE,c)}
 async function deleteCourse(id){await dbDel(STORE,id);courses=courses.filter(c=>c.id!==id)}
-function getCoursesForDate(dateStr){return courses.filter(c=>c.date===dateStr).sort((a,b)=>(a.time||'').localeCompare(b.time||''))}
 
-// ==== Render ====
+function getSessionsForDate(dateStr){
+  const result=[];
+  for(const c of courses){
+    for(let i=0;i<(c.sessions||[]).length;i++){
+      const s=c.sessions[i];
+      if(s.date===dateStr)result.push({course:c,session:s,sessionIdx:i});
+    }
+  }
+  return result;
+}
+function getAllUpcomingSessions(){
+  const today=fmtDate(new Date());
+  const all=[];
+  for(const c of courses){
+    for(const s of (c.sessions||[])){
+      all.push({course:c,session:s});
+    }
+  }
+  all.sort((a,b)=>a.session.date.localeCompare(b.session.date));
+  return all;
+}
+function sessionHasVenue(s){return s.venue&&s.venue.trim()!==''}
+function sessionHasAv(s){return s.avType==='inhouse'||s.avType==='outsource'}
+
+// ==== Calendar Render ====
 function renderCalendar(){
   const y=currentDate.getFullYear(),m=currentDate.getMonth();
   document.getElementById('monthTitle').textContent=`${MONTHS[m]} ${y}`;
-  
-  // Header
+
   const hdr=document.getElementById('calHeader');hdr.innerHTML=DAYS.map(d=>`<div>${d}</div>`).join('');
-  
-  // Days
+
   const grid=document.getElementById('calGrid');
   const fd=new Date(y,m,1).getDay();
   const ld=new Date(y,m+1,0).getDate();
   const prevLd=new Date(y,m,0).getDate();
-  
+
   const todayStr=fmtDate(new Date());
   const selStr=selectedDate;
-  
+
   let cells=[];
-  // Previous month tail
   for(let i=fd-1;i>=0;i--)cells.push({d:prevLd-i,other:true});
-  // Current month
   for(let i=1;i<=ld;i++)cells.push({d:i,other:false});
-  // Next month head to fill 6 rows
   const rem=42-cells.length;
   for(let i=1;i<=rem;i++)cells.push({d:i,other:true});
-  
-  grid.innerHTML=cells.map((c,i)=>{
+
+  grid.innerHTML=cells.map(c=>{
     const dateObj=c.other?new Date(y,m-1,c.d):new Date(y,m,c.d);
     const dateStr=fmtDate(dateObj);
-    const dayCourses=getCoursesForDate(dateStr);
+    const daySessions=getSessionsForDate(dateStr);
     const isToday=dateStr===todayStr;
     const isSel=dateStr===selStr;
     let cls='cal-day';
     if(c.other)cls+=' other-month';
     if(isToday)cls+=' today';
     if(isSel)cls+=' selected';
-    const dot=dayCourses.length>0?'<div class="day-dot"></div>':'';
-    const count=dayCourses.length>1?`<div class="day-count">${dayCourses.length}</div>`:'';
-    return `<div class="${cls}" data-date="${dateStr}"><span class="day-num">${c.d}</span>${dot}${count}</div>`;
+
+    let dotsHtml='<div class="session-dots">';
+    const inhouseCount=daySessions.filter(x=>x.session.avType==='inhouse').length;
+    const outsourceCount=daySessions.filter(x=>x.session.avType==='outsource').length;
+    const pendingCount=daySessions.filter(x=>!sessionHasAv(x.session)).length;
+    if(inhouseCount>0)dotsHtml+=`<span class="dot dot-inhouse"></span>`;
+    if(outsourceCount>0)dotsHtml+=`<span class="dot dot-outsource"></span>`;
+    if(pendingCount>0)dotsHtml+=`<span class="dot" style="background:var(--text-muted);opacity:.4"></span>`;
+    dotsHtml+='</div>';
+    if(daySessions.length===0)dotsHtml='';
+    const count=daySessions.length>1?`<div class="day-count">${daySessions.length}</div>`:'';
+    return `<div class="${cls}" data-date="${dateStr}"><span class="day-num">${c.d}</span>${dotsHtml}${count}</div>`;
   }).join('');
-  
-  // Click handlers
+
   grid.querySelectorAll('.cal-day').forEach(el=>{
     el.addEventListener('click',()=>{
       selectedDate=el.dataset.date;
@@ -374,59 +461,116 @@ function renderCalendar(){
 
 function renderDayDetail(){
   const title=document.getElementById('selectedDateTitle');
-  const container=document.getElementById('coursesContainer');
+  const sub=document.getElementById('selectedDateSub');
+  const container=document.getElementById('sessionsContainer');
   const empty=document.getElementById('emptyState');
-  
+
   if(!selectedDate){
     title.textContent='选择一个日期';
+    sub.textContent='';
     container.innerHTML='';
     empty.style.display='block';
-    empty.textContent='点击日历上的日期查看课程';
+    empty.innerHTML='<div class="empty-state-icon">🗓️</div><div>点击日历上的日期查看课程</div>';
     return;
   }
-  
+
   const d=parseDate(selectedDate);
   const dayName=DAYS[d.getDay()];
-  title.textContent=`${dayName}, ${d.getDate()} ${MONTHS[d.getMonth()]} ${d.getFullYear()}`;
-  
-  const dayCourses=getCoursesForDate(selectedDate);
-  if(dayCourses.length===0){
+  title.textContent=`${d.getDate()} ${MONTHS[d.getMonth()]}`;
+  sub.textContent=`${dayName} · ${d.getFullYear()}`;
+
+  const daySessions=getSessionsForDate(selectedDate);
+  if(daySessions.length===0){
     container.innerHTML='';
     empty.style.display='block';
-    empty.textContent='当天没有课程';
+    empty.innerHTML='<div class="empty-state-icon">🌴</div><div>当天没有课程</div>';
     return;
   }
-  
+
   empty.style.display='none';
-  container.innerHTML=dayCourses.map(c=>{
-    const avBadge=c.avType==='inhouse'?'<span class="badge badge-inhouse">🎤 Inhouse</span>':'<span class="badge badge-outsource">📡 Outsource</span>';
-    const venueBadge=`<span class="badge badge-venue">📍 ${c.venue}</span>`;
-    const timeHtml=c.time?`<span>⏰ ${c.time}</span>`:'';
-    const notesHtml=c.notes?`<div style="font-size:12px;color:var(--text-dim);margin-top:4px">${c.notes}</div>`:'';
-    return `<div class="course-card" data-id="${c.id}">
-      <div class="course-name">${c.name}</div>
-      <div class="course-meta">${timeHtml}${venueBadge}${avBadge}</div>
-      ${notesHtml}
-    </div>`;
-  }).join('');
-  
-  container.querySelectorAll('.course-card').forEach(el=>{
-    el.addEventListener('click',()=>openEditModal(+el.dataset.id));
+  container.innerHTML=daySessions.map(item=>renderSessionCard(item.course,item.session,item.sessionIdx)).join('');
+  container.querySelectorAll('.session-card').forEach(el=>{
+    el.addEventListener('click',()=>openEditCourse(+el.dataset.courseId));
   });
 }
 
-function renderCourseForm(){
-  const sel=document.getElementById('courseVenue');
-  const opts=[{label:'🏠 OE Ballroom',val:'OE Ballroom'},{label:'🏠 MDMT Ballroom',val:'MDMT Ballroom'}];
-  venues.forEach(v=>opts.push({label:`📌 ${v}`,val:v}));
-  opts.push({label:'➕ 其他场地...',val:'__custom__'});
-  sel.innerHTML=opts.map(o=>`<option value="${o.val}">${o.label}</option>`).join('');
+function renderSessionCard(course,session,sessionIdx){
+  const dayIndex=course.sessions.findIndex(s=>s.date===session.date);
+  const totalDays=course.sessions.length;
+  const dayLabel=totalDays>1?`Day ${dayIndex+1}/${totalDays} · `:'';
+  let venueBadge='',avBadge='';
+  if(sessionHasVenue(session)){
+    venueBadge=`<span class="badge badge-venue">📍 ${session.venue}</span>`;
+  }
+  if(session.avType==='inhouse'){
+    avBadge='<span class="badge badge-inhouse">🎤 Inhouse</span>';
+  }else if(session.avType==='outsource'){
+    avBadge='<span class="badge badge-outsource">📡 Outsource</span>';
+  }else{
+    avBadge='<span class="badge badge-pending">⏳ 待定 AV</span>';
+  }
+  const timeHtml=session.time?`<span class="badge badge-time">⏰ ${session.time}</span>`:'';
+  const pendingCls=!sessionHasVenue(session)?'course-pending':'';
+  return `<div class="session-card ${pendingCls}" data-course-id="${course.id}">
+    <div class="session-name">${course.name}</div>
+    <div class="session-meta">${totalDays>1?`<span class="badge badge-day">📆 ${dayLabel}${session.date}</span>`:''}${timeHtml}${venueBadge}${avBadge}</div>
+    ${course.notes?`<div style="font-size:12px;color:var(--text-muted);margin-top:6px">${course.notes}</div>`:''}
+  </div>`;
+}
+
+function renderCoursesView(){
+  const container=document.getElementById('allCoursesList');
+  if(courses.length===0){
+    container.innerHTML='<div class="empty-state"><div class="empty-state-icon">📚</div><div>还没有课程，点右上角「+ 新建课程」开始</div></div>';
+    return;
+  }
+  const all=getAllUpcomingSessions();
+  // Group by course
+  container.innerHTML=courses.map(course=>{
+    const sessions=(course.sessions||[]).slice().sort((a,b)=>a.date.localeCompare(b.date));
+    return `<div class="course-row">
+      <div class="course-row-head">
+        <div class="course-row-name">${course.name} ${course.notes?`<span style="font-size:11px;color:var(--text-muted);font-weight:500;margin-left:8px">— ${course.notes}</span>`:''}</div>
+        <div class="course-row-actions">
+          <button class="icon-btn" data-edit-course="${course.id}" title="编辑">✏️</button>
+          <button class="icon-btn danger" data-del-course="${course.id}" title="删除">🗑️</button>
+        </div>
+      </div>
+      <div class="course-sessions">
+        ${sessions.map((s,i)=>{
+          const venue=s.venue?`<span class="badge badge-venue">📍 ${s.venue}</span>`:'<span class="badge badge-pending">⏳ 场地待定</span>';
+          const av=s.avType==='inhouse'?'<span class="badge badge-inhouse">🎤 Inhouse</span>':s.avType==='outsource'?'<span class="badge badge-outsource">📡 Outsource</span>':'<span class="badge badge-pending">⏳ AV 待定</span>';
+          const time=s.time?`<span class="badge badge-time">⏰ ${s.time}</span>`:'';
+          return `<div class="course-session-item">
+            <span class="session-date">📆 ${s.date}</span>
+            <div class="session-info">${time}${venue}${av}</div>
+          </div>`;
+        }).join('')}
+      </div>
+    </div>`;
+  }).join('');
+
+  container.querySelectorAll('[data-edit-course]').forEach(btn=>{
+    btn.addEventListener('click',()=>openEditCourse(+btn.dataset.editCourse));
+  });
+  container.querySelectorAll('[data-del-course]').forEach(btn=>{
+    btn.addEventListener('click',async()=>{
+      if(!confirm('删除整个课程？所有场次也会删除。'))return;
+      await deleteCourse(+btn.dataset.delCourse);
+      await loadCourses();
+      renderCalendar();
+      renderDayDetail();
+      renderCoursesView();
+      syncPush();
+      showToast('课程已删除 ✓');
+    });
+  });
 }
 
 function renderVenueModal(){
   const list=document.getElementById('externalVenuesList');
   if(venues.length===0){
-    list.innerHTML='<div style="font-size:13px;color:var(--text-dim);padding:8px 0">尚未添加外部场地</div>';
+    list.innerHTML='<div style="font-size:13px;color:var(--text-muted);padding:8px 0">尚未添加外部场地</div>';
     return;
   }
   list.innerHTML=venues.map(v=>`<span class="venue-tag">📌 ${v} <button class="remove-venue" data-venue="${v}">✕</button></span>`).join('');
@@ -435,26 +579,135 @@ function renderVenueModal(){
   });
 }
 
+// ==== Course Modal ====
+let editingCourse=null;
+let editingSessions=[];
+
+function openNewCourse(){
+  editingCourse=null;
+  editingSessions=[{date:selectedDate||fmtDate(new Date()),time:'',venue:'',avType:''}];
+  renderCourseForm();
+  document.getElementById('modalTitle').textContent='新建课程';
+  document.getElementById('courseName').value='';
+  document.getElementById('courseNotes').value='';
+  document.getElementById('deleteSection').style.display='none';
+  document.getElementById('modalSave').textContent='保存课程';
+  renderSessionsBuilder();
+  showModal('courseModal');
+}
+
+function openEditCourse(id){
+  const course=courses.find(c=>c.id===id);
+  if(!course)return;
+  editingCourse=course;
+  editingSessions=JSON.parse(JSON.stringify(course.sessions||[]));
+  if(editingSessions.length===0)editingSessions=[{date:fmtDate(new Date()),time:'',venue:'',avType:''}];
+  document.getElementById('modalTitle').textContent='编辑课程';
+  document.getElementById('editId').value=id;
+  document.getElementById('courseName').value=course.name;
+  document.getElementById('courseNotes').value=course.notes||'';
+  document.getElementById('deleteSection').style.display='block';
+  document.getElementById('modalSave').textContent='更新课程';
+  renderSessionsBuilder();
+  showModal('courseModal');
+}
+
+function renderVenueOptions(selected){
+  let opts=`<option value="">— 暂不选 —</option>`;
+  opts+=`<optgroup label="🏠 自有场地">`;
+  opts+=BUILTIN_VENUES.map(v=>`<option value="${v}" ${v===selected?'selected':''}>${v}</option>`).join('');
+  opts+=`</optgroup>`;
+  if(venues.length>0){
+    opts+=`<optgroup label="📌 外部场地">`;
+    opts+=venues.map(v=>`<option value="${v}" ${v===selected?'selected':''}>${v}</option>`).join('');
+    opts+=`</optgroup>`;
+  }
+  opts+=`<option value="__custom__">➕ 其他场地...</option>`;
+  return opts;
+}
+
+function renderSessionsBuilder(){
+  const list=document.getElementById('sessionsList');
+  list.innerHTML=editingSessions.map((s,i)=>`
+    <div class="session-form" data-idx="${i}">
+      ${editingSessions.length>1?`<button type="button" class="remove-session" data-remove="${i}">✕</button>`:''}
+      <div class="form-row">
+        <div class="form-group" style="margin-bottom:8px">
+          <label>日期</label>
+          <input type="date" data-field="date" value="${s.date}" required>
+        </div>
+        <div class="form-group" style="margin-bottom:8px">
+          <label>时间</label>
+          <input type="text" data-field="time" value="${s.time||''}" placeholder="9:00am - 6:00pm">
+        </div>
+      </div>
+      <div class="form-group" style="margin-bottom:0">
+        <label>场地</label>
+        <select data-field="venue">${renderVenueOptions(s.venue||'')}</select>
+        <input type="text" data-field="customVenue" value="${s.venue&&!isBuiltin(s.venue)&&!venues.includes(s.venue)?s.venue:''}" placeholder="输入场地名称..." style="margin-top:6px;display:${s.venue==='__custom__'||(s.venue&&!isBuiltin(s.venue)&&!venues.includes(s.venue))?'block':'none'}">
+      </div>
+      <div class="form-group" style="margin-bottom:0">
+        <label>AV 系统</label>
+        <select data-field="avType">
+          <option value="" ${!s.avType?'selected':''}>— 待定 —</option>
+          <option value="inhouse" ${s.avType==='inhouse'?'selected':''}>🎤 Inhouse AV</option>
+          <option value="outsource" ${s.avType==='outsource'?'selected':''}>📡 Outsource AV</option>
+        </select>
+      </div>
+    </div>
+  `).join('');
+
+  list.querySelectorAll('.session-form').forEach(form=>{
+    const idx=+form.dataset.idx;
+    form.querySelectorAll('[data-field]').forEach(input=>{
+      input.addEventListener('change',e=>{
+        const f=e.target.dataset.field;
+        let val=e.target.value;
+        if(f==='venue'&&val==='__custom__'){
+          e.target.nextElementSibling.style.display='block';
+          e.target.nextElementSibling.focus();
+          val='';
+        }else if(f==='venue'){
+          e.target.nextElementSibling.style.display='none';
+        }
+        if(f==='customVenue'){
+          editingSessions[idx].venue=val;
+        }else{
+          editingSessions[idx][f]=val;
+        }
+      });
+    });
+    form.querySelectorAll('[data-remove]').forEach(btn=>{
+      btn.addEventListener('click',()=>{
+        const i=+btn.dataset.remove;
+        editingSessions.splice(i,1);
+        renderSessionsBuilder();
+      });
+    });
+  });
+}
+
+function showModal(id){document.getElementById(id).classList.add('active')}
+function hideModal(id){document.getElementById(id).classList.remove('active')}
+
+function showToast(msg,type='success'){
+  const t=document.getElementById('toast');
+  t.textContent=msg;t.className='toast toast-'+type;
+  t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),2500);
+}
+
 // ==== Gist Sync ====
 function updateSyncUI(){
   const ind=document.getElementById('syncIndicator');
-  if(syncing){
-    ind.textContent='⟳ 同步中...';ind.className='sync-indicator';
-    return
-  }
-  if(syncEnabled){
-    ind.textContent='☁ 已同步';ind.className='sync-indicator synced';
-  }else{
-    ind.textContent='○ 本地';ind.className='sync-indicator';
-  }
+  if(syncing){ind.textContent='⟳ 同步中';ind.className='sync-indicator syncing';return}
+  if(syncEnabled){ind.textContent='☁ 已同步';ind.className='sync-indicator synced';return}
+  ind.textContent='○ 本地';ind.className='sync-indicator';
 }
 
 async function gistRequest(method,body){
-  const url=syncGistId
-    ?`https://api.github.com/gists/${syncGistId}`
-    :'https://api.github.com/gists';
-  const opts={method,
-    headers:{'Authorization':`Bearer ${syncToken}`,'Accept':'application/vnd.github.v3+json','Content-Type':'application/json'}};
+  const url=syncGistId?`https://api.github.com/gists/${syncGistId}`:'https://api.github.com/gists';
+  const opts={method,headers:{'Authorization':`Bearer ${syncToken}`,'Accept':'application/vnd.github.v3+json','Content-Type':'application/json'}};
   if(body)opts.body=JSON.stringify(body);
   const r=await fetch(url,opts);
   if(!r.ok){const e=await r.json();throw new Error(e.message||`HTTP ${r.status}`)}
@@ -468,7 +721,6 @@ async function syncPush(){
     const data={courses,venues,updatedAt:new Date().toISOString()};
     const files={};files[GIST_FILE]={content:JSON.stringify(data,null,2)};
     if(!syncGistId){
-      // First time: create gist
       const gist=await gistRequest('POST',{description:'Angus Scheduler data',public:false,files});
       syncGistId=gist.id;
       localStorage.setItem('gh_sync_gist_id',syncGistId);
@@ -483,47 +735,30 @@ async function syncPull(){
   if(!syncToken||syncing)return;
   syncing=true;updateSyncUI();
   try{
-    // Find gist by checking if we have an ID
     if(!syncGistId){
-      // Search for existing gist
-      const r=await fetch('https://api.github.com/gists',{
-        headers:{'Authorization':`Bearer ${syncToken}`,'Accept':'application/vnd.github.v3+json'}
-      });
+      const r=await fetch('https://api.github.com/gists',{headers:{'Authorization':`Bearer ${syncToken}`,'Accept':'application/vnd.github.v3+json'}});
       if(!r.ok)throw new Error('Failed to list gists');
       const gists=await r.json();
       const found=gists.find(g=>g.description==='Angus Scheduler data'&&g.files[GIST_FILE]);
-      if(found){
-        syncGistId=found.id;
-        localStorage.setItem('gh_sync_gist_id',syncGistId);
-      }else{
-        // No existing gist, will create on next push
-        syncEnabled=true;
-        syncing=false;updateSyncUI();
-        return;
-      }
+      if(found){syncGistId=found.id;localStorage.setItem('gh_sync_gist_id',syncGistId);}
+      else{syncEnabled=true;syncing=false;updateSyncUI();return}
     }
     const gist=await gistRequest('GET');
     if(gist.files[GIST_FILE]){
       const data=JSON.parse(gist.files[GIST_FILE].content);
-      if(data.courses&&data.venues){
-        // Sync courses
-        for(const c of data.courses){
-          const existing=courses.find(x=>x.id===c.id);
-          if(existing)Object.assign(existing,c);
-          else courses.push(c);
-        }
-        // Remove courses no longer in remote
-        const remoteIds=new Set(data.courses.map(c=>c.id));
-        courses=courses.filter(c=>remoteIds.has(c.id));
-        // Sync venues
-        const remoteVenues=data.venues.filter(v=>!isBuiltin(v));
-        for(const v of remoteVenues)if(!venues.includes(v))venues.push(v);
-        // Save locally
-        for(const c of courses)await dbPut(STORE,c);
-        for(const v of venues.filter(v=>!isBuiltin(v)))await dbPut(VENUE_STORE,{name:v});
-        renderCalendar();renderDayDetail();renderCourseForm();
-        showToast('已从云端同步最新数据 ✓');
+      if(data.courses){
+        await dbDelAll(STORE);
+        courses=[];
+        for(const c of data.courses){await dbPut(STORE,c);courses.push(c)}
+        courses.sort((a,b)=>(b.updatedAt||0)-(a.updatedAt||0));
       }
+      if(data.venues){
+        for(const v of venues.filter(x=>!isBuiltin(x)))await dbDel(VENUE_STORE,v);
+        venues=[];
+        for(const v of data.venues.filter(x=>!isBuiltin(x))){await dbPut(VENUE_STORE,{name:v});venues.push(v)}
+      }
+      renderCalendar();renderDayDetail();renderCoursesView();renderCourseForm();
+      showToast('已从云端同步最新数据 ✓');
     }
     syncEnabled=true;
   }catch(e){console.error('Sync pull failed:',e);showToast('同步拉取失败: '+e.message,'error')}
@@ -534,17 +769,14 @@ async function syncConnect(token){
   syncToken=token;syncGistId='';
   localStorage.setItem('gh_sync_token',token);
   localStorage.removeItem('gh_sync_gist_id');
-  // Test token and find/create gist
   try{
-    const r=await fetch('https://api.github.com/user',{
-      headers:{'Authorization':`Bearer ${token}`,'Accept':'application/vnd.github.v3+json'}
-    });
+    const r=await fetch('https://api.github.com/user',{headers:{'Authorization':`Bearer ${token}`,'Accept':'application/vnd.github.v3+json'}});
     if(!r.ok)throw new Error('Token 无效或没有 gist 权限');
     const user=await r.json();
     syncEnabled=true;
     await syncPull();
     if(!syncGistId)await syncPush();
-    showToast(`☁ 已连接 ${user.login} 的 Gist 同步 ✓`);
+    showToast(`☁ 已连接 ${user.login} 的同步 ✓`);
     return true;
   }catch(e){
     syncToken='';syncGistId='';syncEnabled=false;
@@ -563,133 +795,68 @@ function syncDisconnect(){
   showToast('已断开同步');
 }
 
-// ==== Modal ====
-function showModal(id){document.getElementById(id).classList.add('active')}
-function hideModal(id){document.getElementById(id).classList.remove('active')}
-function resetForm(){
-  document.getElementById('editId').value='';
-  document.getElementById('modalTitle').textContent='新增课程';
-  document.getElementById('courseForm').reset();
-  document.getElementById('customVenueGroup').style.display='none';
-  document.getElementById('deleteSection').style.display='none';
-  document.getElementById('modalSave').textContent='保存';
-  if(selectedDate)document.getElementById('courseDate').value=selectedDate;
-}
-
-function openEditModal(id){
-  const course=courses.find(c=>c.id===id);
-  if(!course)return;
-  document.getElementById('editId').value=id;
-  document.getElementById('modalTitle').textContent='编辑课程';
-  document.getElementById('courseName').value=course.name;
-  document.getElementById('courseDate').value=course.date;
-  document.getElementById('courseTime').value=course.time||'';
-  
-  const venueSel=document.getElementById('courseVenue');
-  if(isBuiltin(course.venue)||venues.includes(course.venue)){
-    venueSel.value=course.venue;
-    document.getElementById('customVenueGroup').style.display='none';
-  }else{
-    venueSel.value='__custom__';
-    document.getElementById('customVenueGroup').style.display='block';
-    document.getElementById('customVenueInput').value=course.venue;
-  }
-  
-  document.getElementById('courseAvType').value=course.avType||'inhouse';
-  document.getElementById('courseNotes').value=course.notes||'';
-  document.getElementById('deleteSection').style.display='block';
-  document.getElementById('modalSave').textContent='更新';
-  showModal('courseModal');
-}
-
-function showToast(msg,type='success'){
-  const t=document.getElementById('toast');
-  t.textContent=msg;t.className='toast toast-'+type;
-  t.classList.add('show');
-  setTimeout(()=>t.classList.remove('show'),2500);
-}
-
 // ==== Events ====
 document.getElementById('prevMonthBtn').addEventListener('click',()=>{currentDate.setMonth(currentDate.getMonth()-1);renderCalendar()});
 document.getElementById('nextMonthBtn').addEventListener('click',()=>{currentDate.setMonth(currentDate.getMonth()+1);renderCalendar()});
 document.getElementById('todayBtn').addEventListener('click',()=>{currentDate=new Date();selectedDate=fmtDate(new Date());renderCalendar();renderDayDetail()});
 
-document.getElementById('addBtn').addEventListener('click',()=>{resetForm();showModal('courseModal')});
+document.querySelectorAll('.view-tab').forEach(t=>{
+  t.addEventListener('click',()=>{
+    document.querySelectorAll('.view-tab').forEach(x=>x.classList.remove('active'));
+    t.classList.add('active');
+    currentView=t.dataset.view;
+    document.getElementById('calendarView').style.display=currentView==='calendar'?'block':'none';
+    document.getElementById('coursesView').style.display=currentView==='courses'?'block':'none';
+    if(currentView==='courses')renderCoursesView();
+  });
+});
+
+document.getElementById('addBtn').addEventListener('click',openNewCourse);
 document.getElementById('modalCancel').addEventListener('click',()=>hideModal('courseModal'));
 
-document.getElementById('courseVenue').addEventListener('change',function(){
-  document.getElementById('customVenueGroup').style.display=this.value==='__custom__'?'block':'none';
+document.getElementById('addSessionBtn').addEventListener('click',()=>{
+  // Add new session with date = last session + 1 day
+  const last=editingSessions[editingSessions.length-1];
+  let nextDate=fmtDate(new Date());
+  if(last&&last.date){
+    const d=parseDate(last.date);d.setDate(d.getDate()+1);
+    nextDate=fmtDate(d);
+  }
+  editingSessions.push({date:nextDate,time:'',venue:'',avType:''});
+  renderSessionsBuilder();
 });
 
 document.getElementById('courseForm').addEventListener('submit',async e=>{
   e.preventDefault();
   const id=document.getElementById('editId').value;
   const name=document.getElementById('courseName').value.trim();
-  const date=document.getElementById('courseDate').value;
-  const time=document.getElementById('courseTime').value.trim();
-  const venueSel=document.getElementById('courseVenue').value;
-  const venue=venueSel==='__custom__'?document.getElementById('customVenueInput').value.trim():venueSel;
-  const avType=document.getElementById('courseAvType').value;
   const notes=document.getElementById('courseNotes').value.trim();
-  
-  if(!name||!date||!venue){showToast('请填写完整信息','error');return}
-  
-  const course={name,date,time,venue,avType,notes};
+
+  if(!name){showToast('请输入课程名称','error');return}
+  if(editingSessions.length===0){showToast('至少需要一个场次','error');return}
+
+  // Validate sessions
+  for(let i=0;i<editingSessions.length;i++){
+    const s=editingSessions[i];
+    if(!s.date){showToast(`第 ${i+1} 个场次缺日期`,'error');return}
+  }
+
+  const course={name,notes,sessions:editingSessions};
   if(id)course.id=+id;
-  
+
   try{
     await saveCourse(course);
     await loadCourses();
     renderCalendar();
     renderDayDetail();
+    renderCoursesView();
     hideModal('courseModal');
     syncPush();
-    showToast(id?'课程已更新 ✓':'课程已添加 ✓');
+    showToast(id?'课程已更新 ✓':'课程已创建 ✓');
   }catch(err){showToast('保存失败: '+err.message,'error')}
 });
 
-// Delete button
-document.addEventListener('click',async e=>{
-  if(e.target.id==='deleteBtn'||e.target.closest('#deleteBtn')){
-    if(!confirm('确定删除这个课程？'))return;
-    const id=document.getElementById('editId').value;
-    if(!id)return;
-    try{
-      await deleteCourse(+id);
-      await loadCourses();
-      renderCalendar();
-      renderDayDetail();
-      hideModal('courseModal');
-      syncPush();
-      showToast('课程已删除 ✓');
-    }catch(err){showToast('删除失败','error')}
-  }
-});
-
-// Add delete button dynamically
-const origSubmit=document.getElementById('courseForm').submit;
-const deleteBtn=document.createElement('button');
-deleteBtn.type='button';deleteBtn.id='deleteBtn';
-deleteBtn.className='btn btn-danger';deleteBtn.style.flex='1';deleteBtn.style.justifyContent='center';
-deleteBtn.textContent='删除课程';
-document.getElementById('deleteSection').appendChild(deleteBtn);
-
-// Venue manager
-document.getElementById('manageVenuesBtn').addEventListener('click',()=>{renderVenueModal();showModal('venueModal')});
-document.getElementById('venueModalClose').addEventListener('click',()=>hideModal('venueModal'));
-document.getElementById('addVenueBtn').addEventListener('click',()=>{
-  const inp=document.getElementById('newVenueInput');
-  const name=inp.value.trim();
-  if(!name){showToast('请输入场地名称','error');return}
-  if(isBuiltin(name)||venues.includes(name)){showToast('场地已存在','error');return}
-  addVenue(name);
-  inp.value='';
-  syncPush();
-  showToast('场地已添加 ✓');
-});
-document.getElementById('newVenueInput').addEventListener('keydown',e=>{if(e.key==='Enter')document.getElementById('addVenueBtn').click()});
-
-// Settings modal
+// Settings
 document.getElementById('settingsBtn').addEventListener('click',()=>{
   document.getElementById('githubTokenInput').value=syncToken;
   const st=document.getElementById('syncStatus');
@@ -736,7 +903,19 @@ document.getElementById('manualSyncBtn').addEventListener('click',async()=>{
   document.getElementById('syncStatus').textContent='☁ 同步完成';
 });
 
-// Click outside modal to close
+document.getElementById('manageVenuesBtn').addEventListener('click',()=>{renderVenueModal();showModal('venueModal')});
+document.getElementById('venueModalClose').addEventListener('click',()=>hideModal('venueModal'));
+document.getElementById('addVenueBtn').addEventListener('click',()=>{
+  const inp=document.getElementById('newVenueInput');
+  const name=inp.value.trim();
+  if(!name){showToast('请输入场地名称','error');return}
+  if(isBuiltin(name)||venues.includes(name)){showToast('场地已存在','error');return}
+  addVenue(name);inp.value='';
+  syncPush();
+  showToast('场地已添加 ✓');
+});
+document.getElementById('newVenueInput').addEventListener('keydown',e=>{if(e.key==='Enter')document.getElementById('addVenueBtn').click()});
+
 document.querySelectorAll('.modal-overlay').forEach(el=>{
   el.addEventListener('click',e=>{if(e.target===el)hideModal(el.id)});
 });
@@ -746,20 +925,16 @@ document.querySelectorAll('.modal-overlay').forEach(el=>{
   await loadVenues();
   await loadCourses();
   selectedDate=fmtDate(new Date());
-  renderCourseForm();
   renderCalendar();
   renderDayDetail();
+  renderCoursesView();
   updateSyncUI();
-  
-  // Auto-sync on startup if connected
+
   if(syncToken&&syncGistId){syncEnabled=true;syncPull()}
-  
-  // Register SW
+
   if('serviceWorker'in navigator){
-    try{
-      await navigator.serviceWorker.register('sw.js');
-      console.log('SW registered');
-    }catch(e){console.log('SW registration failed:',e)}
+    try{await navigator.serviceWorker.register('sw.js');console.log('SW registered');}
+    catch(e){console.log('SW registration failed:',e)}
   }
 })();
 </script>
