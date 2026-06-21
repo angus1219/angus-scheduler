@@ -547,8 +547,10 @@ function renderCoursesView(){
   const all=getAllUpcomingSessions();
   // Sort courses by earliest session date
   const sorted=[...courses].sort((a,b)=>{
-    const aFirst=a.sessions?.length?Math.min(...a.sessions.map(s=>s.date)):'9999-99-99';
-    const bFirst=b.sessions?.length?Math.min(...b.sessions.map(s=>s.date)):'9999-99-99';
+    const aDates=a.sessions?.map(s=>s.date).filter(Boolean).sort()||[];
+    const bDates=b.sessions?.map(s=>s.date).filter(Boolean).sort()||[];
+    const aFirst=aDates[0]||'9999-99-99';
+    const bFirst=bDates[0]||'9999-99-99';
     return bFirst.localeCompare(aFirst);
   });
   // Group by course
