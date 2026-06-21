@@ -551,7 +551,7 @@ function renderCoursesView(){
     const bDates=b.sessions?.map(s=>s.date).filter(Boolean).sort()||[];
     const aFirst=aDates[0]||'9999-99-99';
     const bFirst=bDates[0]||'9999-99-99';
-    return bFirst.localeCompare(aFirst);
+    return aFirst.localeCompare(bFirst);
   });
   // Group by course
   container.innerHTML=sorted.map(course=>{
