@@ -63,13 +63,14 @@ header{display:flex;align-items:center;justify-content:space-between;padding:14p
 .sync-indicator.syncing{color:var(--accent);border-color:rgba(0,212,255,0.3)}
 
 /* Month Nav */
-.month-nav{display:flex;align-items:center;justify-content:space-between;padding:8px 0}
-.month-title{font-size:22px;font-weight:700;letter-spacing:-.02em}
-.month-controls{display:flex;gap:6px;align-items:center}
-.month-controls button{width:36px;height:36px;border-radius:50%;border:1px solid var(--border);background:var(--surface);color:var(--text);cursor:pointer;font-size:13px;transition:all .2s;font-family:inherit}
-.month-controls button:hover{background:var(--surface-hover);border-color:var(--border-bright)}
-.month-controls .today-btn{padding:6px 14px;border-radius:50px;font-size:12px;font-weight:600;border:1px solid var(--border-bright);background:var(--surface);color:var(--text);cursor:pointer;transition:all .2s;font-family:inherit}
-.month-controls .today-btn:hover{background:var(--surface-hover)}
+.month-nav{display:flex;align-items:center;justify-content:space-between;padding:8px 0;gap:12px}
+.month-title{font-size:22px;font-weight:700;letter-spacing:-.02em;flex:1;min-width:0}
+.month-controls{display:flex;gap:6px;align-items:center;flex-shrink:0}
+.month-controls .ctrl-btn{padding:8px 12px;border-radius:50px;font-size:12px;font-weight:600;border:1px solid var(--border);background:var(--surface);color:var(--text);cursor:pointer;transition:all .2s;font-family:inherit;min-width:40px}
+.month-controls .ctrl-btn:hover{background:var(--surface-hover);border-color:var(--border-bright)}
+.month-controls .ctrl-btn.today{color:var(--accent);border-color:rgba(0,212,255,0.3);background:rgba(0,212,255,0.05)}
+.month-controls .ctrl-btn.today:hover{background:rgba(0,212,255,0.12)}
+.month-controls .ctrl-btn.nav{min-width:40px;padding:8px 6px}
 
 /* Calendar */
 .calendar-wrap{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:14px;backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px)}
@@ -220,9 +221,9 @@ header{display:flex;align-items:center;justify-content:space-between;padding:14p
     <div class="month-nav">
       <span class="month-title" id="monthTitle">July 2026</span>
       <div class="month-controls">
-        <button class="today-btn" id="todayBtn">今天</button>
-        <button id="prevMonthBtn">◀</button>
-        <button id="nextMonthBtn">▶</button>
+        <button class="ctrl-btn nav" id="prevMonthBtn" aria-label="上一月">◀</button>
+        <button class="ctrl-btn today" id="todayBtn">今天</button>
+        <button class="ctrl-btn nav" id="nextMonthBtn" aria-label="下一月">▶</button>
       </div>
     </div>
     <div class="calendar-wrap">
@@ -586,8 +587,8 @@ let editingSessions=[];
 function openNewCourse(){
   editingCourse=null;
   editingSessions=[{date:selectedDate||fmtDate(new Date()),time:'',venue:'',avType:''}];
-  renderCourseForm();
   document.getElementById('modalTitle').textContent='新建课程';
+  document.getElementById('editId').value='';
   document.getElementById('courseName').value='';
   document.getElementById('courseNotes').value='';
   document.getElementById('deleteSection').style.display='none';
@@ -757,7 +758,7 @@ async function syncPull(){
         venues=[];
         for(const v of data.venues.filter(x=>!isBuiltin(x))){await dbPut(VENUE_STORE,{name:v});venues.push(v)}
       }
-      renderCalendar();renderDayDetail();renderCoursesView();renderCourseForm();
+      renderCalendar();renderDayDetail();renderCoursesView();
       showToast('已从云端同步最新数据 ✓');
     }
     syncEnabled=true;
@@ -922,19 +923,24 @@ document.querySelectorAll('.modal-overlay').forEach(el=>{
 
 // Init
 (async function(){
-  await loadVenues();
-  await loadCourses();
-  selectedDate=fmtDate(new Date());
-  renderCalendar();
-  renderDayDetail();
-  renderCoursesView();
-  updateSyncUI();
+  try{
+    await loadVenues();
+    await loadCourses();
+    selectedDate=fmtDate(new Date());
+    renderCalendar();
+    renderDayDetail();
+    renderCoursesView();
+    updateSyncUI();
 
-  if(syncToken&&syncGistId){syncEnabled=true;syncPull()}
+    if(syncToken&&syncGistId){syncEnabled=true;syncPull()}
 
-  if('serviceWorker'in navigator){
-    try{await navigator.serviceWorker.register('sw.js');console.log('SW registered');}
-    catch(e){console.log('SW registration failed:',e)}
+    if('serviceWorker'in navigator){
+      try{await navigator.serviceWorker.register('sw.js');console.log('SW registered');}
+      catch(e){console.log('SW registration failed:',e)}
+    }
+  }catch(err){
+    console.error('Init failed:',err);
+    showToast('启动错误: '+err.message,'error');
   }
 })();
 </script>
