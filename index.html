@@ -936,8 +936,8 @@ document.querySelectorAll('.modal-overlay').forEach(el=>{
   el.addEventListener('click',e=>{if(e.target===el)hideModal(el.id)});
 });
 
-// Init
-(async function(){
+// Init — use DOMContentLoaded for reliability, with fallback
+async function initApp(){
   try{
     await loadVenues();
     await loadCourses();
@@ -950,7 +950,7 @@ document.querySelectorAll('.modal-overlay').forEach(el=>{
     if(syncToken&&syncGistId){syncEnabled=true;syncPull()}
 
     if('serviceWorker'in navigator){
-        try{await navigator.serviceWorker.register('sw.js?v=4');console.log('SW registered');}
+      try{await navigator.serviceWorker.register('sw.js?v=4');console.log('SW registered');}
       catch(e){console.log('SW registration failed:',e)}
     }
   }catch(err){
@@ -958,7 +958,12 @@ document.querySelectorAll('.modal-overlay').forEach(el=>{
     const banner=document.getElementById('errorBanner');
     if(banner){banner.style.display='block';banner.textContent='⚠️ 启动错误: '+err.message+' — 请清除浏览器缓存后刷新'}
   }
-})();
+}
+if(document.readyState==='loading'){
+  document.addEventListener('DOMContentLoaded',initApp);
+}else{
+  initApp();
+}
 </script>
 </body>
 </html>
