@@ -601,13 +601,14 @@ let editingCourse=null;
 
 function getDatesInRange(startStr,endStr){
   const dates=[];
-  const start=parseDate(startStr);
-  const end=parseDate(endStr);
-  if(start>end)return [];
-  const cur=new Date(start);
-  while(cur<=end){
-    dates.push(fmtDate(cur));
-    cur.setDate(cur.getDate()+1);
+  // Use string comparison (YYYY-MM-DD) to avoid timezone issues
+  if(startStr>endStr)return [];
+  let cur=startStr;
+  while(cur<=endStr){
+    dates.push(cur);
+    // Add one day
+    const d=parseDate(cur);d.setDate(d.getDate()+1);
+    cur=fmtDate(d);
   }
   return dates;
 }
