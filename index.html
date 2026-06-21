@@ -46,6 +46,8 @@ header h1{font-size:20px;font-weight:700;background:linear-gradient(135deg,var(-
 .btn-icon:hover{background:var(--surface-hover)}
 .btn-danger{background:var(--red);color:#fff}
 .btn-danger:hover{opacity:.9}
+.sync-indicator{display:inline-flex;align-items:center;gap:4px;font-size:11px;padding:4px 10px;border-radius:50px;background:var(--surface);border:1px solid var(--border);color:var(--text-dim);cursor:default}
+.sync-indicator.synced{color:var(--green);border-color:rgba(16,185,129,0.3)}
 
 /* Month Nav */
 .month-nav{display:flex;align-items:center;justify-content:space-between;padding:8px 0}
@@ -141,6 +143,8 @@ header h1{font-size:20px;font-weight:700;background:linear-gradient(135deg,var(-
     <h1>📅 Angus Scheduler</h1>
     <div class="header-actions">
       <button class="btn-icon" id="manageVenuesBtn" title="管理场地">📍</button>
+      <span class="sync-indicator" id="syncIndicator" title="同步状态">○ 本地</span>
+      <button class="btn-icon" id="settingsBtn" title="设置">⚙️</button>
       <button class="btn btn-primary" id="addBtn">+ 新增课程</button>
     </div>
   </header>
@@ -247,6 +251,35 @@ header h1{font-size:20px;font-weight:700;background:linear-gradient(135deg,var(-
   </div>
 </div>
 
+<!-- Settings Modal -->
+<div class="modal-overlay" id="settingsModal">
+  <div class="modal">
+    <h2>⚙️ 设置</h2>
+    <div style="margin-bottom:16px">
+      <div style="font-size:13px;color:var(--text-dim);margin-bottom:8px">GitHub Gist 自动同步</div>
+      <div style="font-size:12px;color:var(--text-dim);margin-bottom:12px;line-height:1.5">
+        数据自动同步到 GitHub Gist，所有设备共享同一份数据。<br>
+        需要 GitHub Personal Access Token（仅需 <code style="background:var(--surface);padding:1px 6px;border-radius:4px;font-size:11px">gist</code> 权限）。
+      </div>
+      <div class="form-group">
+        <label>GitHub Token</label>
+        <input type="password" id="githubTokenInput" placeholder="ghp_xxxxxxxxxxxx" autocomplete="off">
+      </div>
+      <div id="syncStatus" style="font-size:12px;color:var(--text-dim);margin-bottom:10px;min-height:18px"></div>
+      <div class="form-actions" style="gap:8px">
+        <button class="btn btn-primary" id="connectSyncBtn" style="flex:1;justify-content:center">连接同步</button>
+        <button class="btn btn-ghost" id="disconnectSyncBtn" style="flex:1;justify-content:center;display:none">断开同步</button>
+      </div>
+      <div style="margin-top:10px;display:none" id="syncActions">
+        <button class="btn btn-ghost btn-sm" id="manualSyncBtn" style="width:100%;justify-content:center">🔄 立即同步</button>
+      </div>
+    </div>
+    <div class="form-actions" style="margin-top:8px">
+      <button class="btn btn-ghost" id="settingsModalClose" style="flex:1;justify-content:center">关闭</button>
+    </div>
+  </div>
+</div>
+
 <div class="toast" id="toast"></div>
 
 <script>
@@ -267,6 +300,11 @@ let courses=[],venues=[],currentDate=new Date(),selectedDate=null;
 const MONTHS=['January','February','March','April','May','June','July','August','September','October','November','December'];
 const DAYS=['Su','Mo','Tu','We','Th','Fr','Sa'];
 const BUILTIN_VENUES=['OE Ballroom','MDMT Ballroom'];
+const GIST_FILE='angus-scheduler-data.json';
+let syncToken=localStorage.getItem('gh_sync_token')||'';
+let syncGistId=localStorage.getItem('gh_sync_gist_id')||'';
+let syncEnabled=!!(syncToken&&syncGistId);
+let syncing=false;
 
 function fmtDate(d){const y=d.getFullYear(),m=String(d.getMonth()+1).padStart(2,'0'),day=String(d.getDate()).padStart(2,'0');return`${y}-${m}-${day}`}
 function parseDate(s){const p=s.split('-');return new Date(+p[0],+p[1]-1,+p[2])}
@@ -275,7 +313,7 @@ function parseDate(s){const p=s.split('-');return new Date(+p[0],+p[1]-1,+p[2])}
 function isBuiltin(v){return BUILTIN_VENUES.includes(v)}
 async function loadVenues(){const v=await dbGetAll(VENUE_STORE);venues=v.map(v=>v.name).filter(n=>!isBuiltin(n))}
 async function addVenue(name){name=name.trim();if(!name||isBuiltin(name)||venues.includes(name))return;await dbPut(VENUE_STORE,{name});venues.push(name);renderVenueModal();renderCourseForm()}  
-async function removeVenue(name){if(isBuiltin(name))return;await dbDel(VENUE_STORE,name);venues=venues.filter(v=>v!==name);renderVenueModal();renderCourseForm()}
+async function removeVenue(name){if(isBuiltin(name))return;await dbDel(VENUE_STORE,name);venues=venues.filter(v=>v!==name);renderVenueModal();renderCourseForm();renderCalendar();syncPush()}
 
 // ==== Course CRUD ====
 async function loadCourses(){courses=await dbGetAll(STORE)}
@@ -397,6 +435,134 @@ function renderVenueModal(){
   });
 }
 
+// ==== Gist Sync ====
+function updateSyncUI(){
+  const ind=document.getElementById('syncIndicator');
+  if(syncing){
+    ind.textContent='⟳ 同步中...';ind.className='sync-indicator';
+    return
+  }
+  if(syncEnabled){
+    ind.textContent='☁ 已同步';ind.className='sync-indicator synced';
+  }else{
+    ind.textContent='○ 本地';ind.className='sync-indicator';
+  }
+}
+
+async function gistRequest(method,body){
+  const url=syncGistId
+    ?`https://api.github.com/gists/${syncGistId}`
+    :'https://api.github.com/gists';
+  const opts={method,
+    headers:{'Authorization':`Bearer ${syncToken}`,'Accept':'application/vnd.github.v3+json','Content-Type':'application/json'}};
+  if(body)opts.body=JSON.stringify(body);
+  const r=await fetch(url,opts);
+  if(!r.ok){const e=await r.json();throw new Error(e.message||`HTTP ${r.status}`)}
+  return r.json();
+}
+
+async function syncPush(){
+  if(!syncEnabled||syncing)return;
+  syncing=true;updateSyncUI();
+  try{
+    const data={courses,venues,updatedAt:new Date().toISOString()};
+    const files={};files[GIST_FILE]={content:JSON.stringify(data,null,2)};
+    if(!syncGistId){
+      // First time: create gist
+      const gist=await gistRequest('POST',{description:'Angus Scheduler data',public:false,files});
+      syncGistId=gist.id;
+      localStorage.setItem('gh_sync_gist_id',syncGistId);
+    }else{
+      await gistRequest('PATCH',{files});
+    }
+  }catch(e){console.error('Sync push failed:',e);showToast('同步失败: '+e.message,'error')}
+  finally{syncing=false;updateSyncUI()}
+}
+
+async function syncPull(){
+  if(!syncToken||syncing)return;
+  syncing=true;updateSyncUI();
+  try{
+    // Find gist by checking if we have an ID
+    if(!syncGistId){
+      // Search for existing gist
+      const r=await fetch('https://api.github.com/gists',{
+        headers:{'Authorization':`Bearer ${syncToken}`,'Accept':'application/vnd.github.v3+json'}
+      });
+      if(!r.ok)throw new Error('Failed to list gists');
+      const gists=await r.json();
+      const found=gists.find(g=>g.description==='Angus Scheduler data'&&g.files[GIST_FILE]);
+      if(found){
+        syncGistId=found.id;
+        localStorage.setItem('gh_sync_gist_id',syncGistId);
+      }else{
+        // No existing gist, will create on next push
+        syncEnabled=true;
+        syncing=false;updateSyncUI();
+        return;
+      }
+    }
+    const gist=await gistRequest('GET');
+    if(gist.files[GIST_FILE]){
+      const data=JSON.parse(gist.files[GIST_FILE].content);
+      if(data.courses&&data.venues){
+        // Sync courses
+        for(const c of data.courses){
+          const existing=courses.find(x=>x.id===c.id);
+          if(existing)Object.assign(existing,c);
+          else courses.push(c);
+        }
+        // Remove courses no longer in remote
+        const remoteIds=new Set(data.courses.map(c=>c.id));
+        courses=courses.filter(c=>remoteIds.has(c.id));
+        // Sync venues
+        const remoteVenues=data.venues.filter(v=>!isBuiltin(v));
+        for(const v of remoteVenues)if(!venues.includes(v))venues.push(v);
+        // Save locally
+        for(const c of courses)await dbPut(STORE,c);
+        for(const v of venues.filter(v=>!isBuiltin(v)))await dbPut(VENUE_STORE,{name:v});
+        renderCalendar();renderDayDetail();renderCourseForm();
+        showToast('已从云端同步最新数据 ✓');
+      }
+    }
+    syncEnabled=true;
+  }catch(e){console.error('Sync pull failed:',e);showToast('同步拉取失败: '+e.message,'error')}
+  finally{syncing=false;updateSyncUI()}
+}
+
+async function syncConnect(token){
+  syncToken=token;syncGistId='';
+  localStorage.setItem('gh_sync_token',token);
+  localStorage.removeItem('gh_sync_gist_id');
+  // Test token and find/create gist
+  try{
+    const r=await fetch('https://api.github.com/user',{
+      headers:{'Authorization':`Bearer ${token}`,'Accept':'application/vnd.github.v3+json'}
+    });
+    if(!r.ok)throw new Error('Token 无效或没有 gist 权限');
+    const user=await r.json();
+    syncEnabled=true;
+    await syncPull();
+    if(!syncGistId)await syncPush();
+    showToast(`☁ 已连接 ${user.login} 的 Gist 同步 ✓`);
+    return true;
+  }catch(e){
+    syncToken='';syncGistId='';syncEnabled=false;
+    localStorage.removeItem('gh_sync_token');
+    localStorage.removeItem('gh_sync_gist_id');
+    showToast('连接失败: '+e.message,'error');
+    return false;
+  }finally{updateSyncUI()}
+}
+
+function syncDisconnect(){
+  syncToken='';syncGistId='';syncEnabled=false;
+  localStorage.removeItem('gh_sync_token');
+  localStorage.removeItem('gh_sync_gist_id');
+  updateSyncUI();
+  showToast('已断开同步');
+}
+
 // ==== Modal ====
 function showModal(id){document.getElementById(id).classList.add('active')}
 function hideModal(id){document.getElementById(id).classList.remove('active')}
@@ -477,6 +643,7 @@ document.getElementById('courseForm').addEventListener('submit',async e=>{
     renderCalendar();
     renderDayDetail();
     hideModal('courseModal');
+    syncPush();
     showToast(id?'课程已更新 ✓':'课程已添加 ✓');
   }catch(err){showToast('保存失败: '+err.message,'error')}
 });
@@ -493,6 +660,7 @@ document.addEventListener('click',async e=>{
       renderCalendar();
       renderDayDetail();
       hideModal('courseModal');
+      syncPush();
       showToast('课程已删除 ✓');
     }catch(err){showToast('删除失败','error')}
   }
@@ -516,9 +684,57 @@ document.getElementById('addVenueBtn').addEventListener('click',()=>{
   if(isBuiltin(name)||venues.includes(name)){showToast('场地已存在','error');return}
   addVenue(name);
   inp.value='';
+  syncPush();
   showToast('场地已添加 ✓');
 });
 document.getElementById('newVenueInput').addEventListener('keydown',e=>{if(e.key==='Enter')document.getElementById('addVenueBtn').click()});
+
+// Settings modal
+document.getElementById('settingsBtn').addEventListener('click',()=>{
+  document.getElementById('githubTokenInput').value=syncToken;
+  const st=document.getElementById('syncStatus');
+  if(syncEnabled){
+    st.textContent='☁ 同步已连接';
+    document.getElementById('connectSyncBtn').style.display='none';
+    document.getElementById('disconnectSyncBtn').style.display='flex';
+    document.getElementById('syncActions').style.display='block';
+  }else{
+    st.textContent='';
+    document.getElementById('connectSyncBtn').style.display='flex';
+    document.getElementById('disconnectSyncBtn').style.display='none';
+    document.getElementById('syncActions').style.display='none';
+  }
+  showModal('settingsModal');
+});
+document.getElementById('settingsModalClose').addEventListener('click',()=>hideModal('settingsModal'));
+document.getElementById('connectSyncBtn').addEventListener('click',async()=>{
+  const token=document.getElementById('githubTokenInput').value.trim();
+  if(!token||!token.startsWith('ghp_')&&!token.startsWith('github_')&&!token.startsWith('ghu_')){
+    showToast('请输入有效的 GitHub Token','error');return}
+  document.getElementById('syncStatus').textContent='⏳ 连接中...';
+  const ok=await syncConnect(token);
+  if(ok){
+    document.getElementById('connectSyncBtn').style.display='none';
+    document.getElementById('disconnectSyncBtn').style.display='flex';
+    document.getElementById('syncActions').style.display='block';
+    document.getElementById('syncStatus').textContent='☁ 同步已连接';
+  }else{
+    document.getElementById('syncStatus').textContent='❌ 连接失败';
+  }
+});
+document.getElementById('disconnectSyncBtn').addEventListener('click',()=>{
+  syncDisconnect();
+  document.getElementById('connectSyncBtn').style.display='flex';
+  document.getElementById('disconnectSyncBtn').style.display='none';
+  document.getElementById('syncActions').style.display='none';
+  document.getElementById('syncStatus').textContent='';
+  document.getElementById('githubTokenInput').value='';
+});
+document.getElementById('manualSyncBtn').addEventListener('click',async()=>{
+  document.getElementById('syncStatus').textContent='⏳ 同步中...';
+  await syncPush();
+  document.getElementById('syncStatus').textContent='☁ 同步完成';
+});
 
 // Click outside modal to close
 document.querySelectorAll('.modal-overlay').forEach(el=>{
@@ -533,6 +749,10 @@ document.querySelectorAll('.modal-overlay').forEach(el=>{
   renderCourseForm();
   renderCalendar();
   renderDayDetail();
+  updateSyncUI();
+  
+  // Auto-sync on startup if connected
+  if(syncToken&&syncGistId){syncEnabled=true;syncPull()}
   
   // Register SW
   if('serviceWorker'in navigator){
