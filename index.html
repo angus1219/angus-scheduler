@@ -163,7 +163,7 @@ header{display:flex;align-items:center;justify-content:space-between;padding:14p
 .stats-group .stat-item .num{font-size:16px}
 
 /* Calendar course label */
-.cal-day .cal-label{font-size:10px;line-height:1.2;font-weight:600;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin-top:2px;padding:1px 4px;border-radius:4px;width:100%;letter-spacing:-.01em}
+.cal-day .cal-label{font-size:9px;line-height:1.2;font-weight:600;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin-top:1px;padding:1px 3px;border-radius:3px;width:100%;letter-spacing:-.01em}
 .cal-day .cal-label.type-main{color:var(--accent);background:rgba(0,212,255,0.12)}
 .cal-day .cal-label.type-preview{color:var(--amber);background:rgba(245,158,11,0.12)}
 .cal-day .cal-label.type-event{color:var(--accent-3);background:rgba(236,72,153,0.12)}
@@ -601,7 +601,7 @@ function renderCalendar(){
     // Course labels on calendar — color by type
     const typeCls={main:'type-main',preview:'type-preview',event:'type-event'};
     const labels=daySessions.slice(0,3).map(item=>{
-      const name=item.course.name.slice(0,6);
+      const name=item.course.name;
       const t=item.course.type||'main';
       return `<div class="cal-label ${typeCls[t]||'type-main'}">${name}</div>`;
     }).join('');
