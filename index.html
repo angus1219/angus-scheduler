@@ -1263,6 +1263,15 @@ document.getElementById('newVenueInput').addEventListener('keydown',e=>{if(e.key
 // Init — use DOMContentLoaded for reliability, with fallback
 async function initApp(){
   populateTimeSelects();
+  // Version check: if old code (no showIssueList), force reload
+  if(typeof showIssueList!=='function'){
+    if('serviceWorker'in navigator){
+      navigator.serviceWorker.getRegistrations().then(rs=>rs.forEach(r=>r.unregister()));
+    }
+    caches.keys().then(ks=>ks.forEach(k=>caches.delete(k)));
+    window.location.href=window.location.href.split('?')[0]+'?v='+Date.now();
+    return;
+  }
   // Timeout guard: if IndexedDB hangs, still render UI
   const timeout = setTimeout(()=>{
     selectedDate=selectedDate||fmtDate(new Date());
