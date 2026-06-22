@@ -349,7 +349,26 @@ header{display:flex;align-items:center;justify-content:space-between;padding:14p
       </div>
       <div class="form-group">
         <label>备注</label>
-        <textarea id="courseNotes" placeholder="可选：教练、学员数、特殊要求..."></textarea>
+        <textarea id="courseNotes" placeholder="学员数、特殊要求..."></textarea>
+      </div>
+
+      <div class="form-group">
+        <label>讲师</label>
+        <select id="courseTrainer">
+          <option value="">— 未指定 —</option>
+          <option value="DWCK">DWCK</option>
+          <option value="Eunice Chew">Eunice Chew</option>
+          <option value="Winsen Khiu">Winsen Khiu</option>
+          <option value="Jason Kok">Jason Kok</option>
+          <option value="Sam Tsen">Sam Tsen</option>
+          <option value="Rachel Lim">Rachel Lim</option>
+          <option value="小姑">小姑</option>
+          <option value="Yika Chong">Yika Chong</option>
+          <option value="Kingsley Chew">Kingsley Chew</option>
+          <option value="Jamie Chin">Jamie Chin</option>
+          <option value="__other__">➕ 其他讲师</option>
+        </select>
+        <input type="text" id="customTrainerInput" placeholder="输入讲师名称..." style="margin-top:6px;display:none">
       </div>
 
       <div class="form-row">
@@ -682,12 +701,13 @@ function renderSessionCard(course,session,sessionIdx){
   const typeMap={main:'正课',preview:'Preview',event:'其他 Event'};
   const typeCls={main:'badge-type-main',preview:'badge-type-preview',event:'badge-type-event'};
   typeBadge=`<span class="badge ${typeCls[t]}">${typeMap[t]}</span>`;
+  const trainerHtml=course.trainer?`<span class="badge badge-time" style="background:rgba(124,58,237,0.1);color:#a78bfa;border-color:rgba(124,58,237,0.2)">👤 ${course.trainer}</span>`:'';
   const timeHtml=session.time?`<span class="badge badge-time">⏰ ${session.time}</span>`:'';
   const pendingCls=!sessionHasVenue(session)||!sessionHasAv(session)?'course-pending':'';
   const cardCls=`session-card type-card-${t} ${pendingCls}`.trim();
   return `<div class="${cardCls}" data-course-id="${course.id}">
     <div class="session-name">${course.name} ${typeBadge}</div>
-    <div class="session-meta">${totalDays>1?`<span class="badge badge-day">📆 ${dayLabel}${session.date}</span>`:''}${timeHtml}${venueBadge}${avBadge}</div>
+    <div class="session-meta">${totalDays>1?`<span class="badge badge-day">📆 ${dayLabel}${session.date}</span>`:''}${timeHtml}${trainerHtml}${venueBadge}${avBadge}</div>
     ${course.notes?`<div style="font-size:12px;color:var(--text-muted);margin-top:6px">${course.notes}</div>`:''}
   </div>`;
 }
@@ -725,10 +745,11 @@ function renderCoursesView(){
         ${sessions.map((s,i)=>{
           const venue=s.venue?`<span class="badge badge-venue">📍 ${s.venue}</span>`:'<span class="badge badge-pending">⏳ 场地待定</span>';
           const av=s.avType==='inhouse'?'<span class="badge badge-inhouse">🎤 Inhouse</span>':s.avType==='outsource-booked'?'<span class="badge badge-outsource-booked">📡 外包(已安排)</span>':s.avType==='outsource-pending'||s.avType==='outsource'?'<span class="badge badge-outsource-pending">📡 外包(未安排)</span>':'<span class="badge badge-pending">⏳ AV待定</span>';
+          const trainerHtml=course.trainer?`<span class="badge badge-time" style="background:rgba(124,58,237,0.1);color:#a78bfa;border-color:rgba(124,58,237,0.2)">👤 ${course.trainer}</span>`:'';
           const time=s.time?`<span class="badge badge-time">⏰ ${s.time}</span>`:'';
           return `<div class="course-session-item">
             <span class="session-date">📆 ${s.date}</span>
-            <div class="session-info">${time}${venue}${av}</div>
+            <div class="session-info">${time}${trainerHtml}${venue}${av}</div>
           </div>`;
         }).join('')}
       </div>
@@ -832,6 +853,9 @@ function openNewCourse(){
   document.getElementById('endDate').value=selectedDate||fmtDate(new Date());
   document.getElementById('courseTime').value='';
   document.getElementById('courseAvType').value='';
+  document.getElementById('courseTrainer').value='';
+  document.getElementById('customTrainerInput').style.display='none';
+  document.getElementById('customTrainerInput').value='';
   document.getElementById('customVenueInput').style.display='none';
   document.getElementById('customVenueInput').value='';
   renderVenueSelect('');
@@ -859,6 +883,17 @@ function openEditCourse(id){
   document.getElementById('endDate').value=lastDate;
   document.getElementById('courseTime').value=firstSession.time||'';
   document.getElementById('courseAvType').value=firstSession.avType||'';
+  const trainer=course.trainer||'';
+  const trainerSel=document.getElementById('courseTrainer');
+  const options=Array.from(trainerSel.options).map(o=>o.value);
+  if(options.includes(trainer)){
+    trainerSel.value=trainer;
+    document.getElementById('customTrainerInput').style.display='none';
+  }else{
+    trainerSel.value='__other__';
+    document.getElementById('customTrainerInput').value=trainer;
+    document.getElementById('customTrainerInput').style.display='block';
+  }
   document.getElementById('customVenueInput').value='';
   document.getElementById('customVenueInput').style.display='none';
   renderVenueSelect(firstSession.venue||'');
@@ -1008,6 +1043,8 @@ document.getElementById('courseForm').addEventListener('submit',async e=>{
   const customVenue=document.getElementById('customVenueInput').value.trim();
   const venue=venueSel==='__custom__'?customVenue:venueSel;
   const avType=document.getElementById('courseAvType').value;
+  const trainerSel=document.getElementById('courseTrainer').value;
+  const trainer=trainerSel==='__other__'?document.getElementById('customTrainerInput').value.trim():trainerSel;
 
   if(!name){showToast('请输入名称','error');return}
   if(!startDate||!endDate){showToast('请选择日期','error');return}
@@ -1016,7 +1053,7 @@ document.getElementById('courseForm').addEventListener('submit',async e=>{
 
   const sessions=dates.map(date=>({date,time,venue,avType}));
 
-  const course={type,name,notes,sessions};
+  const course={type,name,notes,sessions,trainer};
   if(id)course.id=+id;
 
   try{
@@ -1043,6 +1080,12 @@ document.getElementById('courseVenue').addEventListener('change',function(){
 
 // Course type listener
 document.getElementById('courseType').addEventListener('change',updateCourseNameLabel);
+
+// Trainer select listener
+document.getElementById('courseTrainer').addEventListener('change',function(){
+  document.getElementById('customTrainerInput').style.display=this.value==='__other__'?'block':'none';
+  if(this.value==='__other__')document.getElementById('customTrainerInput').focus();
+});
 
 // Settings
 document.getElementById('settingsBtn').addEventListener('click',()=>{
