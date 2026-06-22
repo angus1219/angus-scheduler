@@ -1166,9 +1166,6 @@ document.getElementById('addVenueBtn').addEventListener('click',()=>{
 });
 document.getElementById('newVenueInput').addEventListener('keydown',e=>{if(e.key==='Enter')document.getElementById('addVenueBtn').click()});
 
-document.querySelectorAll('.modal-overlay').forEach(el=>{
-  el.addEventListener('click',e=>{if(e.target===el)hideModal(el.id)});
-});
 
 // Init — use DOMContentLoaded for reliability, with fallback
 async function initApp(){
