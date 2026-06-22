@@ -1284,7 +1284,7 @@ async function initApp(){
     if(syncToken&&syncGistId){syncEnabled=true;syncPull()}
 
     if('serviceWorker'in navigator){
-      try{await navigator.serviceWorker.register('sw.js?v=4');console.log('SW registered');}
+      try{await navigator.serviceWorker.register('sw.js?v='+Date.now());console.log('SW registered');}
       catch(e){console.log('SW registration failed:',e)}
     }
   }catch(err){
