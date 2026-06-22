@@ -549,7 +549,7 @@ function getAllUpcomingSessions(){
   return all;
 }
 function sessionHasVenue(s){return s.venue&&s.venue.trim()!==''}
-function sessionHasAv(s){return s.avType==='inhouse'||s.avType==='outsource-booked'||s.avType==='outsource-pending'||s.avType==='outsource'}
+function sessionHasAv(s){return s.avType==='inhouse'||s.avType==='outsource-booked'||s.avType==='outsource'}
 function avDisplay(s){
   if(!s.avType||s.avType==='')return null;
   if(s.avType==='inhouse')return 'inhouse';
