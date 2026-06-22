@@ -154,6 +154,13 @@ header{display:flex;align-items:center;justify-content:space-between;padding:14p
 .stat-item .num{color:var(--accent);font-size:18px;font-weight:800;letter-spacing:-.02em;text-shadow:0 0 16px var(--accent-glow);transition:color .3s}
 .stat-item .num.warn{color:var(--amber);text-shadow:0 0 16px rgba(245,158,11,0.4)}
 .stat-item .num.danger{color:var(--red);text-shadow:0 0 16px rgba(239,68,68,0.4)}
+.stats-group{padding:10px 14px}
+.stats-group .stat-label{font-size:11px;font-weight:800;letter-spacing:.06em;color:var(--text);text-transform:uppercase;padding:5px 12px;background:rgba(255,255,255,0.05);border-radius:50px;border:1px solid var(--border);margin-right:auto}
+#statsBarMain .stat-label{color:var(--accent);border-color:rgba(0,212,255,0.3);background:rgba(0,212,255,0.08)}
+#statsBarPreview .stat-label{color:var(--amber);border-color:rgba(245,158,11,0.3);background:rgba(245,158,11,0.08)}
+#statsBarEvent .stat-label{color:var(--accent-3);border-color:rgba(236,72,153,0.3);background:rgba(236,72,153,0.08)}
+.stats-group .stat-item{padding:5px 10px;font-size:11px}
+.stats-group .stat-item .num{font-size:16px}
 
 /* Calendar course label */
 .cal-day .cal-label{font-size:8px;line-height:1.1;color:var(--text-dim);max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin-top:1px;padding:0 1px}
@@ -258,10 +265,23 @@ header{display:flex;align-items:center;justify-content:space-between;padding:14p
 
   <div id="errorBanner" style="display:none;background:rgba(239,68,68,0.15);border:1px solid rgba(239,68,68,0.3);border-radius:var(--radius-sm);padding:10px 14px;font-size:13px;color:var(--red);margin-bottom:12px"></div>
 
-<div class="stats-bar" id="statsBar">
-  <span class="stat-item">📅 <span class="num" id="statTotal">0</span> 堂</span>
-  <span class="stat-item">📍 <span class="num" id="statVenuePending">0</span> 未定场地</span>
-  <span class="stat-item">🎤 <span class="num" id="statAvPending">0</span> AV未安排</span>
+<div class="stats-bar stats-group" id="statsBarMain">
+  <span class="stat-label">📘 正课</span>
+  <span class="stat-item"><span class="num" id="statMainTotal">0</span> 堂</span>
+  <span class="stat-item"><span class="num" id="statMainVenue">0</span> 📍未定</span>
+  <span class="stat-item"><span class="num" id="statMainAv">0</span> 🎤未安排</span>
+</div>
+<div class="stats-bar stats-group" id="statsBarPreview">
+  <span class="stat-label">🔍 Preview</span>
+  <span class="stat-item"><span class="num" id="statPreviewTotal">0</span> 堂</span>
+  <span class="stat-item"><span class="num" id="statPreviewVenue">0</span> 📍未定</span>
+  <span class="stat-item"><span class="num" id="statPreviewAv">0</span> 🎤未安排</span>
+</div>
+<div class="stats-bar stats-group" id="statsBarEvent">
+  <span class="stat-label">✨ 其他Event</span>
+  <span class="stat-item"><span class="num" id="statEventTotal">0</span> 堂</span>
+  <span class="stat-item"><span class="num" id="statEventVenue">0</span> 📍未定</span>
+  <span class="stat-item"><span class="num" id="statEventAv">0</span> 🎤未安排</span>
 </div>
 
 <div class="view-tabs">
@@ -507,21 +527,25 @@ function courseStatus(course){
 }
 
 function computeStats(){
-  // 按课程数（不是按 session 数）— 同一门课无论几天都算一班
-  const total=courses.length;
-  let venuePending=0,avPending=0;
+  const buckets={main:{total:0,venue:0,av:0},preview:{total:0,venue:0,av:0},event:{total:0,venue:0,av:0}};
   for(const c of courses){
+    const t=c.type||'main';
+    if(!buckets[t])continue;
+    buckets[t].total++;
     for(const s of (c.sessions||[])){
-      if(!sessionHasVenue(s))venuePending++;
-      if(!sessionHasAv(s))avPending++;
+      if(!sessionHasVenue(s))buckets[t].venue++;
+      if(!sessionHasAv(s))buckets[t].av++;
     }
   }
-  animateNumber('statTotal',total);
-  animateNumber('statVenuePending',venuePending,'warn');
-  animateNumber('statAvPending',avPending,'warn');
+  for(const t of ['main','preview','event']){
+    const b=buckets[t];
+    animateNumber(`stat${t==='main'?'Main':t==='preview'?'Preview':'Event'}Total`,b.total);
+    animateNumber(`stat${t==='main'?'Main':t==='preview'?'Preview':'Event'}Venue`,b.venue,'warn');
+    animateNumber(`stat${t==='main'?'Main':t==='preview'?'Preview':'Event'}Av`,b.av,'warn');
+  }
 }
 
-let lastNumbers={statTotal:0,statVenuePending:0,statAvPending:0};
+let lastNumbers={statMainTotal:0,statMainVenue:0,statMainAv:0,statPreviewTotal:0,statPreviewVenue:0,statPreviewAv:0,statEventTotal:0,statEventVenue:0,statEventAv:0};
 function animateNumber(id,target,warnClass){
   const el=document.getElementById(id);
   if(!el)return;
