@@ -610,8 +610,8 @@ function showIssueList(type,issue){
     const venueBadge=sessionHasVenue(s0)?`<span class="badge badge-venue">📍 ${s0.venue}</span>`:'<span class="badge badge-pending">📍 待定</span>';
     const avBadge=sessionHasAv(s0)?'':`<span class="badge badge-pending">🎤 待定</span>`;
     const time=s0.time?`<span class="badge badge-time">⏰ ${s0.time}</span>`:'';
-    const trainerHtml=course.trainer?`<span class="badge badge-time" style="background:rgba(124,58,237,0.1);color:#a78bfa;border-color:rgba(124,58,237,0.2)">👤 ${course.trainer}</span>`:'';
-    affectedCourses.push({course,range,venueBadge,avBadge,time,trainerHtml});
+    const trainerHtml=c.trainer?`<span class="badge badge-time" style="background:rgba(124,58,237,0.1);color:#a78bfa;border-color:rgba(124,58,237,0.2)">👤 ${c.trainer}</span>`:'';
+    affectedCourses.push({course:c,range,venueBadge,avBadge,time,trainerHtml});
   }
   const list=document.getElementById('issueList');
   if(!affectedCourses.length){
