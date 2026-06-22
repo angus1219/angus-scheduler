@@ -572,10 +572,13 @@ function computeStats(){
     const t=c.type||'main';
     if(!buckets[t])continue;
     buckets[t].total++;
+    let hasVenueIssue=false,hasAvIssue=false;
     for(const s of (c.sessions||[])){
-      if(!sessionHasVenue(s))buckets[t].venue++;
-      if(!sessionHasAv(s))buckets[t].av++;
+      if(!sessionHasVenue(s))hasVenueIssue=true;
+      if(!sessionHasAv(s))hasAvIssue=true;
     }
+    if(hasVenueIssue)buckets[t].venue++;
+    if(hasAvIssue)buckets[t].av++;
   }
   for(const t of ['main','preview','event']){
     const b=buckets[t];
