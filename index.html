@@ -45,10 +45,10 @@
 html,body{height:100%;font-family:-apple-system,BlinkMacSystemFont,'Inter','SF Pro Display','Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(--text);-webkit-font-smoothing:antialiased;-webkit-tap-highlight-color:transparent;overscroll-behavior:none;letter-spacing:-.01em}
 body{background-image:radial-gradient(ellipse 80% 50% at 15% 0%,rgba(124,58,237,0.2),transparent),radial-gradient(ellipse 70% 50% at 85% 30%,rgba(236,72,153,0.1),transparent),radial-gradient(ellipse 60% 50% at 50% 100%,rgba(0,212,255,0.12),transparent),linear-gradient(180deg,transparent 0%,rgba(0,212,255,0.02) 100%);background-attachment:fixed;position:relative}
 body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(rgba(255,255,255,0.015) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,0.015) 1px,transparent 1px);background-size:48px 48px;pointer-events:none;z-index:0}
-#app{position:relative;z-index:1;max-width:880px;margin:0 auto;padding:16px;padding-top:calc(16px + env(safe-area-inset-top,0px));padding-bottom:calc(16px + env(safe-area-inset-bottom,0px));display:flex;flex-direction:column;gap:18px;min-height:100dvh}
+#app{position:relative;z-index:1;max-width:880px;margin:0 auto;padding:16px;padding-bottom:calc(16px + env(safe-area-inset-bottom, 0px));display:flex;flex-direction:column;gap:18px;min-height:100dvh}
 
 /* Header */
-header{display:flex;align-items:center;justify-content:space-between;padding:14px 0 4px}
+header{display:flex;align-items:center;justify-content:space-between;padding:14px 0 4px;padding-top:calc(14px + constant(safe-area-inset-top, 44px));padding-top:calc(14px + env(safe-area-inset-top, 44px))}
 .brand{display:flex;align-items:center;gap:12px}
 .brand-logo{width:42px;height:42px;border-radius:14px;background:linear-gradient(135deg,var(--accent),var(--accent-2));display:flex;align-items:center;justify-content:center;font-size:20px;box-shadow:0 0 24px var(--accent-glow),inset 0 1px 0 rgba(255,255,255,0.2);position:relative;overflow:hidden;animation:logoPulse 3s ease-in-out infinite}
 .brand-logo::after{content:'';position:absolute;inset:0;background:linear-gradient(135deg,transparent 50%,rgba(255,255,255,0.25));animation:logoShine 4s linear infinite}
