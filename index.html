@@ -136,6 +136,15 @@ header{display:flex;align-items:center;justify-content:space-between;padding:14p
 .badge-status-upcoming{background:rgba(0,212,255,0.12);color:var(--accent);border:1px solid rgba(0,212,255,0.25)}
 .badge-status-active{background:rgba(16,185,129,0.12);color:var(--green);border:1px solid rgba(16,185,129,0.25)}
 .badge-status-ended{background:rgba(100,116,139,0.12);color:var(--text-dim);border:1px solid rgba(100,116,139,0.25)}
+.badge-type-main{background:linear-gradient(135deg,rgba(0,212,255,0.15),rgba(124,58,237,0.15));color:var(--accent);border:1px solid rgba(0,212,255,0.3);font-weight:700}
+.badge-type-preview{background:rgba(245,158,11,0.12);color:var(--amber);border:1px solid rgba(245,158,11,0.3);font-weight:700}
+.badge-type-event{background:rgba(236,72,153,0.12);color:var(--accent-3);border:1px solid rgba(236,72,153,0.3);font-weight:700}
+.type-card-main{border-left-color:var(--accent)}
+.type-card-main::before{background:linear-gradient(180deg,var(--accent),var(--accent-2))}
+.type-card-preview{border-left-color:var(--amber)}
+.type-card-preview::before{background:linear-gradient(180deg,var(--amber),#d97706)}
+.type-card-event{border-left-color:var(--accent-3)}
+.type-card-event::before{background:linear-gradient(180deg,var(--accent-3),#be185d)}
 
 /* Stats bar */
 .stats-bar{display:flex;gap:8px;flex-wrap:wrap;padding:12px 16px;background:linear-gradient(135deg,rgba(255,255,255,0.04),rgba(255,255,255,0.02));border:1px solid var(--border);border-radius:var(--radius);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);position:relative;overflow:hidden;box-shadow:var(--shadow-sm)}
@@ -306,7 +315,15 @@ header{display:flex;align-items:center;justify-content:space-between;padding:14p
     <form id="courseForm" autocomplete="off">
       <input type="hidden" id="editId" value="">
       <div class="form-group">
-        <label>课程名称</label>
+        <label>类别</label>
+        <select id="courseType">
+          <option value="main">📘 正课</option>
+          <option value="preview">🔍 Preview</option>
+          <option value="event">✨ 其他 Event</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label id="courseNameLabel">课程名称</label>
         <input type="text" id="courseName" placeholder="如：5A团队成交系统" required>
       </div>
       <div class="form-group">
@@ -616,7 +633,8 @@ function renderSessionCard(course,session,sessionIdx){
   const dayIndex=course.sessions.findIndex(s=>s.date===session.date);
   const totalDays=course.sessions.length;
   const dayLabel=totalDays>1?`Day ${dayIndex+1}/${totalDays} · `:'';
-  let venueBadge='',avBadge='',statusBadge='';
+  const t=course.type||'main';
+  let venueBadge='',avBadge='',statusBadge='',typeBadge='';
   if(sessionHasVenue(session)){
     venueBadge=`<span class="badge badge-venue">📍 ${session.venue}</span>`;
   }else{
@@ -636,10 +654,14 @@ function renderSessionCard(course,session,sessionIdx){
   const statusMap={upcoming:'即将开始',active:'进行中',ended:'已结束'};
   const statusCls={upcoming:'badge-status-upcoming',active:'badge-status-active',ended:'badge-status-ended'};
   statusBadge=`<span class="badge ${statusCls[st]}">● ${statusMap[st]}</span>`;
+  const typeMap={main:'正课',preview:'Preview',event:'其他 Event'};
+  const typeCls={main:'badge-type-main',preview:'badge-type-preview',event:'badge-type-event'};
+  typeBadge=`<span class="badge ${typeCls[t]}">${typeMap[t]}</span>`;
   const timeHtml=session.time?`<span class="badge badge-time">⏰ ${session.time}</span>`:'';
   const pendingCls=!sessionHasVenue(session)||!sessionHasAv(session)?'course-pending':'';
-  return `<div class="session-card ${pendingCls}" data-course-id="${course.id}">
-    <div class="session-name">${course.name} ${statusBadge}</div>
+  const cardCls=`session-card type-card-${t} ${pendingCls}`.trim();
+  return `<div class="${cardCls}" data-course-id="${course.id}">
+    <div class="session-name">${course.name} ${typeBadge}</div>
     <div class="session-meta">${totalDays>1?`<span class="badge badge-day">📆 ${dayLabel}${session.date}</span>`:''}${timeHtml}${venueBadge}${avBadge}</div>
     ${course.notes?`<div style="font-size:12px;color:var(--text-muted);margin-top:6px">${course.notes}</div>`:''}
   </div>`;
@@ -662,10 +684,13 @@ function renderCoursesView(){
   });
   // Group by course
   container.innerHTML=sorted.map(course=>{
+    const t=course.type||'main';
     const sessions=(course.sessions||[]).slice().sort((a,b)=>a.date.localeCompare(b.date));
+    const typeMap={main:'正课',preview:'Preview',event:'其他 Event'};
+    const typeCls={main:'badge-type-main',preview:'badge-type-preview',event:'badge-type-event'};
     return `<div class="course-row">
       <div class="course-row-head">
-        <div class="course-row-name">${course.name} ${course.notes?`<span style="font-size:11px;color:var(--text-muted);font-weight:500;margin-left:8px">— ${course.notes}</span>`:''}</div>
+        <div class="course-row-name">${course.name} <span class="badge ${typeCls[t]}" style="margin-left:8px">${typeMap[t]}</span> ${course.notes?`<span style="font-size:11px;color:var(--text-muted);font-weight:500;margin-left:8px">— ${course.notes}</span>`:''}</div>
         <div class="course-row-actions">
           <button class="icon-btn" data-edit-course="${course.id}" title="编辑">✏️</button>
           <button class="icon-btn danger" data-del-course="${course.id}" title="删除">🗑️</button>
@@ -756,10 +781,26 @@ function renderVenueSelect(selected){
   }
 }
 
+const TYPE_LABELS={main:'正课',preview:'Preview',event:'其他 Event'};
+const TYPE_PLACEHOLDERS={main:'如：5A团队成交系统',preview:'如：思维课 Preview',event:'如：Spark Joy Day'};
+function updateCourseNameLabel(){
+  const t=document.getElementById('courseType').value;
+  const label=document.getElementById('courseNameLabel');
+  const input=document.getElementById('courseName');
+  if(t==='event'){
+    label.textContent='Event 名字';
+    input.placeholder='自定义 Event 名字';
+  }else{
+    label.textContent='课程名称';
+    input.placeholder=TYPE_PLACEHOLDERS[t]||TYPE_PLACEHOLDERS.main;
+  }
+}
+
 function openNewCourse(){
   editingCourse=null;
   document.getElementById('modalTitle').textContent='新建课程';
   document.getElementById('editId').value='';
+  document.getElementById('courseType').value='main';
   document.getElementById('courseName').value='';
   document.getElementById('courseNotes').value='';
   document.getElementById('startDate').value=selectedDate||fmtDate(new Date());
@@ -771,6 +812,7 @@ function openNewCourse(){
   renderVenueSelect('');
   document.getElementById('deleteSection').style.display='none';
   document.getElementById('modalSave').textContent='保存课程';
+  updateCourseNameLabel();
   updateDateRangeInfo();
   showModal('courseModal');
 }
@@ -779,14 +821,13 @@ function openEditCourse(id){
   const course=courses.find(c=>c.id===id);
   if(!course)return;
   editingCourse=course;
-  // Use first session's date as start, last as end. If only one, both are the same.
   const sessions=(course.sessions||[]).map(s=>s.date).sort();
   const firstDate=sessions[0]||fmtDate(new Date());
   const lastDate=sessions[sessions.length-1]||firstDate;
-  // Get venue/av/time from first session (single shared venue)
   const firstSession=course.sessions?.[0]||{};
   document.getElementById('modalTitle').textContent='编辑课程';
   document.getElementById('editId').value=id;
+  document.getElementById('courseType').value=course.type||'main';
   document.getElementById('courseName').value=course.name;
   document.getElementById('courseNotes').value=course.notes||'';
   document.getElementById('startDate').value=firstDate;
@@ -798,6 +839,7 @@ function openEditCourse(id){
   renderVenueSelect(firstSession.venue||'');
   document.getElementById('deleteSection').style.display='block';
   document.getElementById('modalSave').textContent='更新课程';
+  updateCourseNameLabel();
   updateDateRangeInfo();
   showModal('courseModal');
 }
@@ -931,6 +973,7 @@ document.getElementById('modalCancel').addEventListener('click',()=>hideModal('c
 document.getElementById('courseForm').addEventListener('submit',async e=>{
   e.preventDefault();
   const id=document.getElementById('editId').value;
+  const type=document.getElementById('courseType').value;
   const name=document.getElementById('courseName').value.trim();
   const notes=document.getElementById('courseNotes').value.trim();
   const startDate=document.getElementById('startDate').value;
@@ -941,14 +984,14 @@ document.getElementById('courseForm').addEventListener('submit',async e=>{
   const venue=venueSel==='__custom__'?customVenue:venueSel;
   const avType=document.getElementById('courseAvType').value;
 
-  if(!name){showToast('请输入课程名称','error');return}
+  if(!name){showToast('请输入名称','error');return}
   if(!startDate||!endDate){showToast('请选择日期','error');return}
   const dates=getDatesInRange(startDate,endDate);
   if(dates.length===0){showToast('结束日期不能早于开始日期','error');return}
 
   const sessions=dates.map(date=>({date,time,venue,avType}));
 
-  const course={name,notes,sessions};
+  const course={type,name,notes,sessions};
   if(id)course.id=+id;
 
   try{
@@ -972,6 +1015,9 @@ document.getElementById('courseVenue').addEventListener('change',function(){
   document.getElementById('customVenueInput').style.display=this.value==='__custom__'?'block':'none';
   if(this.value==='__custom__')document.getElementById('customVenueInput').focus();
 });
+
+// Course type listener
+document.getElementById('courseType').addEventListener('change',updateCourseNameLabel);
 
 // Settings
 document.getElementById('settingsBtn').addEventListener('click',()=>{
