@@ -598,31 +598,35 @@ const TYPE_ICONS={main:'📘',preview:'🔍',event:'✨'};
 function showIssueList(type,issue){
   const titleMap={venue:'📍 场地未定',av:'🎤 AV未安排'};
   document.getElementById('issueModalTitle').textContent=`${TYPE_ICONS[type]} ${TYPE_NAMES[type]} — ${titleMap[issue]}`;
-  const sessions=[];
+  const affectedCourses=[];
   for(const c of courses){
     if((c.type||'main')!==type)continue;
-    for(const s of(c.sessions||[])){
-      if(issue==='venue'&&!sessionHasVenue(s))sessions.push({course:c,session:s});
-      if(issue==='av'&&!sessionHasAv(s))sessions.push({course:c,session:s});
-    }
+    const sessions=(c.sessions||[]).sort((a,b)=>a.date.localeCompare(b.date));
+    const hasIssue=sessions.some(s=>issue==='venue'?!sessionHasVenue(s):!sessionHasAv(s));
+    if(!hasIssue)continue;
+    const dates=sessions.map(s=>s.date);
+    const range=sessions.length>1?`${dates[0].slice(5)} - ${dates[dates.length-1].slice(5)}`:dates[0]?.slice(5)||'';
+    const s0=sessions[0]||{};
+    const venueBadge=sessionHasVenue(s0)?`<span class="badge badge-venue">📍 ${s0.venue}</span>`:'<span class="badge badge-pending">📍 待定</span>';
+    const avBadge=sessionHasAv(s0)?'':`<span class="badge badge-pending">🎤 待定</span>`;
+    const time=s0.time?`<span class="badge badge-time">⏰ ${s0.time}</span>`:'';
+    const trainerHtml=course.trainer?`<span class="badge badge-time" style="background:rgba(124,58,237,0.1);color:#a78bfa;border-color:rgba(124,58,237,0.2)">👤 ${course.trainer}</span>`:'';
+    affectedCourses.push({course,range,venueBadge,avBadge,time,trainerHtml});
   }
   const list=document.getElementById('issueList');
-  if(!sessions.length){
+  if(!affectedCourses.length){
     list.innerHTML='<div style="text-align:center;padding:24px;color:var(--text-muted)">没有待处理项 ✅</div>';
   }else{
-    list.innerHTML=sessions.map(({course,session})=>{
-      const venueBadge=sessionHasVenue(session)?'':`<span class="badge badge-pending">📍 待定</span>`;
-      const avBadge=sessionHasAv(session)?'':`<span class="badge badge-pending">🎤 待定</span>`;
-      return `<div class="session-card" style="margin:0;cursor:pointer" data-course-id="${course.id}">
+    list.innerHTML=affectedCourses.map(({course,range,venueBadge,avBadge,time,trainerHtml})=>`
+      <div class="session-card" style="margin:0;cursor:pointer" data-course-id="${course.id}">
         <div class="session-name">${course.name}</div>
-        <div class="session-meta"><span class="badge badge-day">📆 ${session.date}</span>${course.trainer?`<span class="badge badge-time" style="background:rgba(124,58,237,0.1);color:#a78bfa;border-color:rgba(124,58,237,0.2)">👤 ${course.trainer}</span>`:''}${venueBadge}${avBadge}</div>
-      </div>`;
-    }).join('');
+        <div class="session-meta"><span class="badge badge-day">📆 ${range}</span>${time}${trainerHtml}${venueBadge}${avBadge}</div>
+      </div>`).join('');
     list.querySelectorAll('.session-card').forEach(el=>{
       el.addEventListener('click',()=>{hideModal('issueModal');openEditCourse(+el.dataset.courseId)});
     });
   }
-  document.getElementById('issueModalSub').textContent=sessions.length+' 项待处理';
+  document.getElementById('issueModalSub').textContent=affectedCourses.length+' 项待处理';
   showModal('issueModal');
 }
 
