@@ -636,11 +636,10 @@ function computeStats(){
   for(const c of courses){
     if((c.type||'main')!=='main')continue;
     const cl=c.checklist;
-    if(!cl)continue;
     bfCourses++;
-    if(cl.before&&ADMIN_BEFORE.every(i=>cl.before[i]))bfDone++;
+    if(cl?.before&&ADMIN_BEFORE.every(i=>cl.before[i]))bfDone++;
     afCourses++;
-    if(cl.after&&ADMIN_AFTER.every(i=>cl.after[i]))afDone++;
+    if(cl?.after&&ADMIN_AFTER.every(i=>cl.after[i]))afDone++;
   }
   document.getElementById('statAdminBeforeDone').textContent=bfDone;
   const bfP=document.getElementById('statAdminBeforePending');
