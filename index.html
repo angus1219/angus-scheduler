@@ -162,6 +162,12 @@ header{display:flex;align-items:center;justify-content:space-between;padding:14p
 #statsBarEvent .stat-label{color:var(--accent-3);border-color:rgba(236,72,153,0.3);background:rgba(236,72,153,0.08)}
 .stats-group .stat-item{padding:5px 10px;font-size:11px}
 .stats-group .stat-item .num{font-size:16px}
+/* Admin checklist item */
+.check-item{display:flex;align-items:center;gap:8px;padding:4px 8px;border-radius:6px;cursor:pointer;transition:all .2s;font-size:13px;color:var(--text-dim)}
+.check-item:hover{background:rgba(255,255,255,0.05)}
+.check-item .check-box{width:18px;height:18px;border-radius:4px;border:2px solid var(--border-bright);display:flex;align-items:center;justify-content:center;transition:all .2s;flex-shrink:0;font-size:10px}
+.check-item.done{color:var(--text-dim);text-decoration:line-through;opacity:.6}
+.check-item.done .check-box{background:var(--green);border-color:var(--green);color:#fff}
 
 /* Calendar course label */
 .cal-day .cal-label{font-size:9px;line-height:1.15;font-weight:600;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin-top:1px;padding:1px 4px;border-radius:4px;width:100%;letter-spacing:-.01em}
@@ -269,6 +275,18 @@ header{display:flex;align-items:center;justify-content:space-between;padding:14p
   <span class="stat-item"><span class="num" id="statMainTotal">0</span> 堂</span>
   <span class="stat-item"><span class="num" id="statMainVenue">0</span> 📍未定</span>
   <span class="stat-item"><span class="num" id="statMainAv">0</span> 🎤未安排</span>
+</div>
+<div class="stats-bar stats-group" style="padding:8px 14px;gap:4px;border-top:none;margin-top:-10px;border-radius:0 0 var(--radius) var(--radius)">
+  <span class="stat-label" style="font-size:10px;padding:3px 10px;background:rgba(147,51,234,0.08);color:#a78bfa;border-color:rgba(147,51,234,0.25);text-transform:none;letter-spacing:0">📋 Admin 课前</span>
+  <span class="stat-item" style="font-size:10px;padding:3px 8px"><span class="num" id="statAdminBefore">0</span>/5</span>
+  <span class="stat-item" style="font-size:10px;padding:3px 8px"><span class="num" id="statAdminBeforeDone">0</span>✓</span>
+  <span class="stat-item" style="font-size:10px;padding:3px 8px"><span class="num warn" id="statAdminBeforePending">0</span>⏳</span>
+</div>
+<div class="stats-bar stats-group" style="padding:8px 14px;gap:4px;border-top:none;margin-top:-10px;border-radius:0 0 var(--radius) var(--radius)">
+  <span class="stat-label" style="font-size:10px;padding:3px 10px;background:rgba(236,72,153,0.08);color:var(--accent-3);border-color:rgba(236,72,153,0.25);text-transform:none;letter-spacing:0">📋 Admin 课后</span>
+  <span class="stat-item" style="font-size:10px;padding:3px 8px"><span class="num" id="statAdminAfter">0</span>/3</span>
+  <span class="stat-item" style="font-size:10px;padding:3px 8px"><span class="num" id="statAdminAfterDone">0</span>✓</span>
+  <span class="stat-item" style="font-size:10px;padding:3px 8px"><span class="num warn" id="statAdminAfterPending">0</span>⏳</span>
 </div>
 <div class="stats-bar stats-group" id="statsBarPreview">
   <span class="stat-label">🔍 Preview</span>
@@ -410,6 +428,14 @@ header{display:flex;align-items:center;justify-content:space-between;padding:14p
           <option value="outsource-pending">📡 外包(未安排)</option>
           <option value="outsource-booked">📡 外包(已安排)</option>
         </select>
+      </div>
+
+      <div id="adminChecklist" style="display:none;margin-top:6px;padding:14px;background:rgba(255,255,255,0.03);border:1px solid var(--border);border-radius:var(--radius-sm)">
+        <div style="font-size:12px;font-weight:700;color:var(--text);margin-bottom:10px;letter-spacing:.04em;text-transform:uppercase">📋 Admin Checklist · 正课</div>
+        <div style="font-size:11px;color:var(--text-muted);margin-bottom:8px">课程前</div>
+        <div id="checklistBefore" style="display:flex;flex-direction:column;gap:4px;margin-bottom:10px"></div>
+        <div style="font-size:11px;color:var(--text-muted);margin-bottom:8px">课程后</div>
+        <div id="checklistAfter" style="display:flex;flex-direction:column;gap:4px"></div>
       </div>
 
       <div id="deleteSection" style="display:none">
@@ -591,6 +617,23 @@ function computeStats(){
     const vEl=document.getElementById(vId);if(vEl){const p=vEl.parentElement;p.classList.toggle('clickable',b.venue>0);p.onclick=b.venue>0?()=>showIssueList(t,'venue'):null;}
     const aEl=document.getElementById(aId);if(aEl){const p=aEl.parentElement;p.classList.toggle('clickable',b.av>0);p.onclick=b.av>0?()=>showIssueList(t,'av'):null;}
   }
+  // Admin checklist stats for 正课
+  let bfTotal=0,bfDone=0,afTotal=0,afDone=0;
+  for(const c of courses){
+    if((c.type||'main')!=='main')continue;
+    const cl=c.checklist;
+    if(!cl)continue;
+    for(const i of ADMIN_BEFORE){bfTotal++;if(cl.before?.[i])bfDone++;}
+    for(const i of ADMIN_AFTER){afTotal++;if(cl.after?.[i])afDone++;}
+  }
+  document.getElementById('statAdminBefore').textContent=bfTotal;
+  document.getElementById('statAdminBeforeDone').textContent=bfDone;
+  const bfP=document.getElementById('statAdminBeforePending');
+  bfP.textContent=bfTotal-bfDone;bfP.className='num'+(bfTotal-bfDone>0?' warn':'');
+  document.getElementById('statAdminAfter').textContent=afTotal;
+  document.getElementById('statAdminAfterDone').textContent=afDone;
+  const afP=document.getElementById('statAdminAfterPending');
+  afP.textContent=afTotal-afDone;afP.className='num'+(afTotal-afDone>0?' warn':'');
 }
 
 const TYPE_NAMES={main:'正课',preview:'Preview',event:'Event'};
@@ -894,6 +937,36 @@ function renderVenueSelect(selected){
 
 const TYPE_LABELS={main:'正课',preview:'Preview',event:'其他 Event'};
 const TYPE_PLACEHOLDERS={main:'如：5A团队成交系统',preview:'如：思维课 Preview',event:'如：Spark Joy Day'};
+// Admin checklist items for 正课
+const ADMIN_BEFORE=['报名详情','成功报名信息','Follow Up Payment','Place Card','Name Tag'];
+const ADMIN_AFTER=['POS System','SQL','Update Namelist'];
+function defaultChecklist(){return{before:Object.fromEntries(ADMIN_BEFORE.map(i=>[i,false])),after:Object.fromEntries(ADMIN_AFTER.map(i=>[i,false]))}}
+function renderChecklist(){
+  const ct=document.getElementById('courseType').value;
+  const box=document.getElementById('adminChecklist');
+  if(ct!=='main'){box.style.display='none';return}
+  box.style.display='block';
+  const cl=window._cl||defaultChecklist();
+  ['before','after'].forEach(phase=>{
+    const items=phase==='before'?ADMIN_BEFORE:ADMIN_AFTER;
+    const container=document.getElementById(`checklist${phase==='before'?'Before':'After'}`);
+    container.innerHTML=items.map(i=>{
+      const done=cl[phase][i];
+      return `<div class="check-item ${done?'done':''}" data-phase="${phase}" data-item="${i}">
+        <span class="check-box">${done?'✓':''}</span>${i}
+      </div>`;
+    }).join('');
+    container.querySelectorAll('.check-item').forEach(el=>{
+      el.addEventListener('click',function(){
+        const phase=this.dataset.phase;
+        const item=this.dataset.item;
+        if(!window._cl)window._cl=defaultChecklist();
+        window._cl[phase][item]=!window._cl[phase][item];
+        renderChecklist();
+      });
+    });
+  });
+}
 // Time options every 30 min
 const TIME_OPTS=[];
 for(let h=6;h<=22;h++){
@@ -969,6 +1042,8 @@ function openNewCourse(){
   document.getElementById('modalSave').textContent='保存课程';
   updateCourseNameLabel();
   updateDateRangeInfo();
+  window._cl=defaultChecklist();
+  renderChecklist();
   showModal('courseModal');
 }
 
@@ -1009,6 +1084,8 @@ function openEditCourse(id){
   document.getElementById('modalSave').textContent='更新课程';
   updateCourseNameLabel();
   updateDateRangeInfo();
+  window._cl=JSON.parse(JSON.stringify(course.checklist||defaultChecklist()));
+  renderChecklist();
   showModal('courseModal');
 }
 
@@ -1162,7 +1239,7 @@ document.getElementById('courseForm').addEventListener('submit',async e=>{
 
   const sessions=dates.map(date=>({date,time,venue,avType}));
 
-  const course={type,name,notes,sessions,trainer};
+  const course={type,name,notes,sessions,trainer,checklist:window._cl||defaultChecklist()};
   if(id)course.id=+id;
 
   try{
@@ -1188,7 +1265,10 @@ document.getElementById('courseVenue').addEventListener('change',function(){
 });
 
 // Course type listener
-document.getElementById('courseType').addEventListener('change',updateCourseNameLabel);
+document.getElementById('courseType').addEventListener('change',function(){
+  updateCourseNameLabel();
+  renderChecklist();
+});
 
 // Trainer select listener
 document.getElementById('courseTrainer').addEventListener('change',function(){
