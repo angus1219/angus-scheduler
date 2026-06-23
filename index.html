@@ -631,26 +631,28 @@ function computeStats(){
     const vEl=document.getElementById(vId);if(vEl){const p=vEl.parentElement;p.classList.toggle('clickable',b.venue>0);p.onclick=b.venue>0?()=>showIssueList(t,'venue'):null;}
     const aEl=document.getElementById(aId);if(aEl){const p=aEl.parentElement;p.classList.toggle('clickable',b.av>0);p.onclick=b.av>0?()=>showIssueList(t,'av'):null;}
   }
-  // Admin checklist stats for 正课
-  let bfTotal=0,bfDone=0,afTotal=0,afDone=0;
+  // Admin checklist stats for 正课 — count courses, not items
+  let bfDone=0,afDone=0,bfCourses=0,afCourses=0;
   for(const c of courses){
     if((c.type||'main')!=='main')continue;
     const cl=c.checklist;
     if(!cl)continue;
-    for(const i of ADMIN_BEFORE){bfTotal++;if(cl.before?.[i])bfDone++;}
-    for(const i of ADMIN_AFTER){afTotal++;if(cl.after?.[i])afDone++;}
+    bfCourses++;
+    if(cl.before&&ADMIN_BEFORE.every(i=>cl.before[i]))bfDone++;
+    afCourses++;
+    if(cl.after&&ADMIN_AFTER.every(i=>cl.after[i]))afDone++;
   }
   document.getElementById('statAdminBeforeDone').textContent=bfDone;
   const bfP=document.getElementById('statAdminBeforePending');
-  bfP.textContent=bfTotal-bfDone;bfP.className='num'+(bfTotal-bfDone>0?' warn':'');
+  bfP.textContent=bfCourses-bfDone;bfP.className='num'+(bfCourses-bfDone>0?' warn':'');
   document.getElementById('statAdminAfterDone').textContent=afDone;
   const afP=document.getElementById('statAdminAfterPending');
-  afP.textContent=afTotal-afDone;afP.className='num'+(afTotal-afDone>0?' warn':'');
+  afP.textContent=afCourses-afDone;afP.className='num'+(afCourses-afDone>0?' warn':'');
   // Make admin stats clickable
   const bfEl=document.getElementById('statAdminBeforePending');
-  if(bfEl){const p=bfEl.parentElement;p.classList.toggle('clickable',bfTotal-bfDone>0);p.onclick=bfTotal-bfDone>0?()=>showAdminIssue('before'):null;}
+  if(bfEl){const p=bfEl.parentElement;p.classList.toggle('clickable',bfCourses-bfDone>0);p.onclick=bfCourses-bfDone>0?()=>showAdminIssue('before'):null;}
   const afEl=document.getElementById('statAdminAfterPending');
-  if(afEl){const p=afEl.parentElement;p.classList.toggle('clickable',afTotal-afDone>0);p.onclick=afTotal-afDone>0?()=>showAdminIssue('after'):null;}
+  if(afEl){const p=afEl.parentElement;p.classList.toggle('clickable',afCourses-afDone>0);p.onclick=afCourses-afDone>0?()=>showAdminIssue('after'):null;}
 }
 
 const TYPE_NAMES={main:'正课',preview:'Preview',event:'Event'};
