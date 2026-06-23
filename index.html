@@ -737,8 +737,12 @@ function showAdminIssue(phase,courseType){
       const ph=this.dataset.phase;
       const course=courses.find(c=>c.id===id);
       if(!course)return;
-      if(!course.checklist)course.checklist={before:{},after:{}};
-      if(!course.checklist[ph])course.checklist[ph]={};
+      if(!course.checklist)course.checklist={};
+      if(!course.checklist[ph]){
+        course.checklist[ph]={};
+        const defaultItems=courseType==='preview'?ADMIN_PREVIEW_AFTER:(ph==='before'?ADMIN_BEFORE:ADMIN_AFTER);
+        defaultItems.forEach(i=>course.checklist[ph][i]=false);
+      }
       course.checklist[ph][item]=!course.checklist[ph][item];
       course.updatedAt=Date.now();
       await dbPut(STORE,course);
