@@ -742,6 +742,7 @@ function showAdminIssue(phase,courseType){
       course.checklist[ph][item]=!course.checklist[ph][item];
       course.updatedAt=Date.now();
       await dbPut(STORE,course);
+      syncPush();
       computeStats();
       showAdminIssue(phase);
     });
