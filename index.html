@@ -313,6 +313,11 @@ header{display:flex;align-items:center;justify-content:space-between;padding:14p
   <span class="stat-item" style="font-size:10px;padding:3px 8px"><span class="num" id="statAdminAfterDone">0</span>✓</span>
   <span class="stat-item" style="font-size:10px;padding:3px 8px"><span class="num warn" id="statAdminAfterPending">0</span>⏳</span>
 </div>
+<div class="stats-bar stats-group" style="padding:8px 14px;gap:4px;border-top:none;margin-top:-4px;border-radius:0 0 var(--radius) var(--radius)">
+  <span class="stat-label" style="font-size:10px;padding:3px 10px;background:rgba(245,158,11,0.08);color:var(--amber);border-color:rgba(245,158,11,0.25);text-transform:none;letter-spacing:0">🔍 Preview · 课程后</span>
+  <span class="stat-item" style="font-size:10px;padding:3px 8px"><span class="num" id="statAdminPreviewAfterDone">0</span>✓</span>
+  <span class="stat-item" style="font-size:10px;padding:3px 8px"><span class="num warn" id="statAdminPreviewAfterPending">0</span>⏳</span>
+</div>
 </div>
 
 <div class="view-tabs">
@@ -624,14 +629,19 @@ function computeStats(){
     const aEl=document.getElementById(aId);if(aEl){const p=aEl.parentElement;p.classList.toggle('clickable',b.av>0);p.onclick=b.av>0?()=>showIssueList(t,'av'):null;}
   }
   // Admin checklist stats for 正课 — count courses, not items
-  let bfDone=0,afDone=0,bfCourses=0,afCourses=0;
+  let bfDone=0,afDone=0,bfCourses=0,afCourses=0,paDone=0,paCourses=0;
   for(const c of courses){
-    if((c.type||'main')!=='main')continue;
+    const t=c.type||'main';
     const cl=c.checklist;
-    bfCourses++;
-    if(cl?.before&&ADMIN_BEFORE.every(i=>cl.before[i]))bfDone++;
-    afCourses++;
-    if(cl?.after&&ADMIN_AFTER.every(i=>cl.after[i]))afDone++;
+    if(t==='main'){
+      bfCourses++;
+      if(cl?.before&&ADMIN_BEFORE.every(i=>cl.before[i]))bfDone++;
+      afCourses++;
+      if(cl?.after&&ADMIN_AFTER.every(i=>cl.after[i]))afDone++;
+    }else if(t==='preview'){
+      paCourses++;
+      if(cl?.after&&ADMIN_PREVIEW_AFTER.every(i=>cl.after[i]))paDone++;
+    }
   }
   document.getElementById('statAdminBeforeDone').textContent=bfDone;
   const bfP=document.getElementById('statAdminBeforePending');
@@ -639,11 +649,16 @@ function computeStats(){
   document.getElementById('statAdminAfterDone').textContent=afDone;
   const afP=document.getElementById('statAdminAfterPending');
   afP.textContent=afCourses-afDone;afP.className='num'+(afCourses-afDone>0?' warn':'');
+  document.getElementById('statAdminPreviewAfterDone').textContent=paDone;
+  const paP=document.getElementById('statAdminPreviewAfterPending');
+  paP.textContent=paCourses-paDone;paP.className='num'+(paCourses-paDone>0?' warn':'');
   // Make admin stats clickable
   const bfEl=document.getElementById('statAdminBeforePending');
-  if(bfEl){const p=bfEl.parentElement;p.classList.toggle('clickable',bfCourses-bfDone>0);p.onclick=bfCourses-bfDone>0?()=>showAdminIssue('before'):null;}
+  if(bfEl){const p=bfEl.parentElement;p.classList.toggle('clickable',bfCourses-bfDone>0);p.onclick=bfCourses-bfDone>0?()=>showAdminIssue('before','main'):null;}
   const afEl=document.getElementById('statAdminAfterPending');
-  if(afEl){const p=afEl.parentElement;p.classList.toggle('clickable',afCourses-afDone>0);p.onclick=afCourses-afDone>0?()=>showAdminIssue('after'):null;}
+  if(afEl){const p=afEl.parentElement;p.classList.toggle('clickable',afCourses-afDone>0);p.onclick=afCourses-afDone>0?()=>showAdminIssue('after','main'):null;}
+  const paEl=document.getElementById('statAdminPreviewAfterPending');
+  if(paEl){const p=paEl.parentElement;p.classList.toggle('clickable',paCourses-paDone>0);p.onclick=paCourses-paDone>0?()=>showAdminIssue('after','preview'):null;}
 }
 
 const TYPE_NAMES={main:'正课',preview:'Preview',event:'Event'};
@@ -684,14 +699,15 @@ function showIssueList(type,issue){
   showModal('issueModal');
 }
 
-function showAdminIssue(phase){
+function showAdminIssue(phase,courseType){
   const phaseName={before:'课程前',after:'课程后'};
-  const items=phase==='before'?ADMIN_BEFORE:ADMIN_AFTER;
-  document.getElementById('issueModalTitle').textContent='📋 Admin — '+phaseName[phase];
+  const typeLabel=courseType==='preview'?'Preview':'正课';
+  const items=courseType==='preview'?ADMIN_PREVIEW_AFTER:(phase==='before'?ADMIN_BEFORE:ADMIN_AFTER);
+  document.getElementById('issueModalTitle').textContent='📋 Admin — '+typeLabel+' · '+phaseName[phase];
   const container=document.getElementById('issueList');
   let hasAny=false;
   container.innerHTML=courses.map(function(c){
-    if((c.type||'main')!=='main')return '';
+    if((c.type||'main')!==(courseType||'main'))return '';
     const cl=c.checklist||{};
     const pending=items.filter(i=>!cl[phase]?.[i]);
     if(!pending.length&&cl[phase])return '';
@@ -1000,6 +1016,7 @@ const TYPE_PLACEHOLDERS={main:'如：5A团队成交系统',preview:'如：思维
 // Admin checklist items for 正课
 const ADMIN_BEFORE=['报名详情','成功报名信息','Follow Up Payment','Place Card','Name Tag'];
 const ADMIN_AFTER=['POS System','SQL','Update Namelist'];
+const ADMIN_PREVIEW_AFTER=['Sales Report','Update Namelist','POS System'];
 function defaultChecklist(){return{before:Object.fromEntries(ADMIN_BEFORE.map(i=>[i,false])),after:Object.fromEntries(ADMIN_AFTER.map(i=>[i,false]))}}
 function renderChecklist(){
   const ct=document.getElementById('courseType').value;
