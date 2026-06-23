@@ -699,8 +699,7 @@ function showAdminIssue(phase){
   const list=[];
   for(const c of courses){
     if((c.type||'main')!=='main')continue;
-    const cl=c.checklist;
-    if(!cl)continue;
+    const cl=c.checklist||{};
     const pending=items.filter(i=>!cl[phase]?.[i]);
     if(!pending.length)continue;
     const dates=(c.sessions||[]).map(s=>s.date).sort();
