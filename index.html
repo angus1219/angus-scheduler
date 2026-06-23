@@ -444,14 +444,6 @@ header{display:flex;align-items:center;justify-content:space-between;padding:14p
         </select>
       </div>
 
-      <div id="adminChecklist" style="display:none;margin-top:6px;padding:14px;background:rgba(255,255,255,0.03);border:1px solid var(--border);border-radius:var(--radius-sm)">
-        <div style="font-size:12px;font-weight:700;color:var(--text);margin-bottom:10px;letter-spacing:.04em;text-transform:uppercase">📋 Admin Checklist · 正课</div>
-        <div style="font-size:11px;color:var(--text-muted);margin-bottom:8px">课程前</div>
-        <div id="checklistBefore" style="display:flex;flex-direction:column;gap:4px;margin-bottom:10px"></div>
-        <div style="font-size:11px;color:var(--text-muted);margin-bottom:8px">课程后</div>
-        <div id="checklistAfter" style="display:flex;flex-direction:column;gap:4px"></div>
-      </div>
-
       <div id="deleteSection" style="display:none">
         <div class="delete-confirm">⚠️ 删除课程将同时删除其所有场次</div>
       </div>
@@ -696,33 +688,49 @@ function showAdminIssue(phase){
   const phaseName={before:'课程前',after:'课程后'};
   const items=phase==='before'?ADMIN_BEFORE:ADMIN_AFTER;
   document.getElementById('issueModalTitle').textContent='📋 Admin — '+phaseName[phase];
-  const list=[];
-  for(const c of courses){
-    if((c.type||'main')!=='main')continue;
+  const container=document.getElementById('issueList');
+  let hasAny=false;
+  container.innerHTML=courses.map(function(c){
+    if((c.type||'main')!=='main')return '';
     const cl=c.checklist||{};
     const pending=items.filter(i=>!cl[phase]?.[i]);
-    if(!pending.length)continue;
+    if(!pending.length&&cl[phase])return '';
+    hasAny=true;
     const dates=(c.sessions||[]).map(s=>s.date).sort();
     const range=dates.length>1?dates[0].slice(5)+' - '+dates[dates.length-1].slice(5):dates[0]?.slice(5)||'';
-    const trainer=c.trainer?`<span class="badge badge-time" style="background:rgba(124,58,237,0.1);color:#a78bfa;border-color:rgba(124,58,237,0.2)">👤 ${c.trainer}</span>`:'';
-    list.push({course:c,range,trainer,pending});
-  }
-  const container=document.getElementById('issueList');
-  if(!list.length){
+    const trainer=c.trainer?'<span class="badge badge-time" style="background:rgba(124,58,237,0.1);color:#a78bfa;border-color:rgba(124,58,237,0.2)">👤 '+c.trainer+'</span>':'';
+    return '<div class="session-card" style="margin:0" data-course-id="'+c.id+'">\
+      <div class="session-name">'+c.name+'</div>\
+      <div class="session-meta"><span class="badge badge-day">📆 '+range+'</span>'+trainer+'</div>\
+      <div style="margin-top:6px;display:flex;flex-wrap:wrap;gap:4px">'+items.map(function(i){
+        const done=cl[phase]?.[i]||false;
+        return '<span class="check-item '+(done?'done':'')+'" style="font-size:12px;padding:3px 8px;border-radius:6px;cursor:pointer;display:inline-flex;align-items:center;gap:4px;color:var(--text-dim);background:rgba(255,255,255,0.03)" data-course="'+c.id+'" data-phase="'+phase+'" data-item="'+i+'">\
+          <span class="check-box" style="width:16px;height:16px;border-radius:3px;border:2px solid var(--border-bright);display:inline-flex;align-items:center;justify-content:center;font-size:9px;flex-shrink:0;'+(done?'background:var(--green);border-color:var(--green);color:#fff':'')+'">'+(done?'✓':'')+'</span>'+i+'\
+        </span>';
+      }).join('')+'</div>\
+    </div>';
+  }).join('');
+  if(!hasAny){
     container.innerHTML='<div style="text-align:center;padding:24px;color:var(--text-muted)">全部完成 ✅</div>';
-  }else{
-    container.innerHTML=list.map(function(a){
-      return '<div class="session-card" style="margin:0;cursor:pointer" data-course-id="'+a.course.id+'">\
-        <div class="session-name">'+a.course.name+'</div>\
-        <div class="session-meta"><span class="badge badge-day">📆 '+a.range+'</span>'+a.trainer+'</div>\
-        <div style="margin-top:6px;display:flex;flex-wrap:wrap;gap:4px">'+a.pending.map(i=>'<span class="badge badge-pending">⏳ '+i+'</span>').join('')+'</div>\
-      </div>';
-    }).join('');
-    container.querySelectorAll('.session-card').forEach(el=>{
-      el.addEventListener('click',()=>{hideModal('issueModal');openEditCourse(+el.dataset.courseId)});
-    });
   }
-  document.getElementById('issueModalSub').textContent=list.length+' 堂有未完成项目';
+  // Click handler for check items
+  container.querySelectorAll('.check-item').forEach(function(el){
+    el.addEventListener('click',async function(){
+      const id=+this.dataset.course;
+      const item=this.dataset.item;
+      const ph=this.dataset.phase;
+      const course=courses.find(c=>c.id===id);
+      if(!course)return;
+      if(!course.checklist)course.checklist={before:{},after:{}};
+      if(!course.checklist[ph])course.checklist[ph]={};
+      course.checklist[ph][item]=!course.checklist[ph][item];
+      course.updatedAt=Date.now();
+      await dbPut(STORE,course);
+      computeStats();
+      showAdminIssue(phase);
+    });
+  });
+  document.getElementById('issueModalSub').textContent='点击项目切换 ✓/✗';
   showModal('issueModal');
 }
 
@@ -1094,8 +1102,6 @@ function openNewCourse(){
   document.getElementById('modalSave').textContent='保存课程';
   updateCourseNameLabel();
   updateDateRangeInfo();
-  window._cl=defaultChecklist();
-  renderChecklist();
   showModal('courseModal');
 }
 
@@ -1136,8 +1142,6 @@ function openEditCourse(id){
   document.getElementById('modalSave').textContent='更新课程';
   updateCourseNameLabel();
   updateDateRangeInfo();
-  window._cl=JSON.parse(JSON.stringify(course.checklist||defaultChecklist()));
-  renderChecklist();
   showModal('courseModal');
 }
 
@@ -1291,7 +1295,7 @@ document.getElementById('courseForm').addEventListener('submit',async e=>{
 
   const sessions=dates.map(date=>({date,time,venue,avType}));
 
-  const course={type,name,notes,sessions,trainer,checklist:window._cl||defaultChecklist()};
+  const course={type,name,notes,sessions,trainer};
   if(id)course.id=+id;
 
   try{
@@ -1317,10 +1321,7 @@ document.getElementById('courseVenue').addEventListener('change',function(){
 });
 
 // Course type listener
-document.getElementById('courseType').addEventListener('change',function(){
-  updateCourseNameLabel();
-  renderChecklist();
-});
+document.getElementById('courseType').addEventListener('change',updateCourseNameLabel);
 
 // Trainer select listener
 document.getElementById('courseTrainer').addEventListener('change',function(){
