@@ -305,13 +305,11 @@ header{display:flex;align-items:center;justify-content:space-between;padding:14p
 </div>
 <div class="stats-bar stats-group" style="padding:8px 14px;gap:4px;border-top:none;margin-top:-10px;border-radius:0 0 var(--radius) var(--radius)">
   <span class="stat-label" style="font-size:10px;padding:3px 10px;background:rgba(147,51,234,0.08);color:#a78bfa;border-color:rgba(147,51,234,0.25);text-transform:none;letter-spacing:0">📋 课程前</span>
-  <span class="stat-item" style="font-size:10px;padding:3px 8px"><span class="num" id="statAdminBefore">0</span>/5</span>
   <span class="stat-item" style="font-size:10px;padding:3px 8px"><span class="num" id="statAdminBeforeDone">0</span>✓</span>
   <span class="stat-item" style="font-size:10px;padding:3px 8px"><span class="num warn" id="statAdminBeforePending">0</span>⏳</span>
 </div>
 <div class="stats-bar stats-group" style="padding:8px 14px;gap:4px;border-top:none;margin-top:-10px;border-radius:0 0 var(--radius) var(--radius)">
   <span class="stat-label" style="font-size:10px;padding:3px 10px;background:rgba(236,72,153,0.08);color:var(--accent-3);border-color:rgba(236,72,153,0.25);text-transform:none;letter-spacing:0">📋 课程后</span>
-  <span class="stat-item" style="font-size:10px;padding:3px 8px"><span class="num" id="statAdminAfter">0</span>/3</span>
   <span class="stat-item" style="font-size:10px;padding:3px 8px"><span class="num" id="statAdminAfterDone">0</span>✓</span>
   <span class="stat-item" style="font-size:10px;padding:3px 8px"><span class="num warn" id="statAdminAfterPending">0</span>⏳</span>
 </div>
@@ -642,11 +640,9 @@ function computeStats(){
     for(const i of ADMIN_BEFORE){bfTotal++;if(cl.before?.[i])bfDone++;}
     for(const i of ADMIN_AFTER){afTotal++;if(cl.after?.[i])afDone++;}
   }
-  document.getElementById('statAdminBefore').textContent=bfTotal;
   document.getElementById('statAdminBeforeDone').textContent=bfDone;
   const bfP=document.getElementById('statAdminBeforePending');
   bfP.textContent=bfTotal-bfDone;bfP.className='num'+(bfTotal-bfDone>0?' warn':'');
-  document.getElementById('statAdminAfter').textContent=afTotal;
   document.getElementById('statAdminAfterDone').textContent=afDone;
   const afP=document.getElementById('statAdminAfterPending');
   afP.textContent=afTotal-afDone;afP.className='num'+(afTotal-afDone>0?' warn':'');
