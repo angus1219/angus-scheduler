@@ -94,7 +94,7 @@ header{display:flex;align-items:center;justify-content:space-between;padding:16p
 .calendar-header{display:grid;grid-template-columns:repeat(7,1fr);gap:2px;margin-bottom:4px}
 .calendar-header div{text-align:center;font-size:10px;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:.06em;padding:6px 0}
 .calendar-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:2px}
-.cal-day{aspect-ratio:1;display:flex;flex-direction:column;align-items:center;justify-content:center;border-radius:12px;cursor:pointer;transition:all .25s var(--spring);min-height:46px;background:transparent;border:1px solid transparent;gap:1px}
+.cal-day{aspect-ratio:1;display:flex;flex-direction:column;align-items:center;justify-content:center;border-radius:12px;cursor:pointer;transition:all .25s var(--spring);min-height:46px;background:transparent;border:1px solid transparent;gap:1px;position:relative;overflow:hidden}
 .cal-day:hover{background:var(--surface-hover);border-color:var(--border);transform:scale(1.05)}
 .cal-day.other-month{opacity:.2}
 .cal-day.today{background:rgba(10,132,255,.1);border-color:rgba(10,132,255,.3)}
