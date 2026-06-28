@@ -325,12 +325,12 @@ header{display:flex;align-items:center;justify-content:space-between;padding:20p
   </div>
 
   <div id="coursesView" style="display:none">
-    <div class="day-detail">
-      <div class="day-detail-head">
-        <div class="day-title">所有课程</div>
-      </div>
-      <div id="allCoursesList"></div>
+    <div class="courses-tabs" style="display:flex;gap:4px;padding:4px;background:var(--surface);border-radius:20px;border:1px solid var(--border);backdrop-filter:blur(30px);-webkit-backdrop-filter:blur(30px);margin-bottom:12px">
+      <button class="courses-tab active" data-type="main" style="flex:1;padding:8px;border-radius:16px;font-size:13px;font-weight:600;border:none;background:var(--accent);color:#fff;transition:all .3s var(--spring)">📘 正课</button>
+      <button class="courses-tab" data-type="preview" style="flex:1;padding:8px;border-radius:16px;font-size:13px;font-weight:600;border:none;background:transparent;color:var(--text-dim);transition:all .3s var(--spring)">🔍 Preview</button>
+      <button class="courses-tab" data-type="event" style="flex:1;padding:8px;border-radius:16px;font-size:13px;font-weight:600;border:none;background:transparent;color:var(--text-dim);transition:all .3s var(--spring)">✨ 其他Event</button>
     </div>
+    <div id="allCoursesList"></div>
   </div>
 </div>
 
@@ -872,23 +872,21 @@ function renderSessionCard(course,session,sessionIdx){
   </div>`;
 }
 
+let currentCoursesTab='main';
 function renderCoursesView(){
   const container=document.getElementById('allCoursesList');
-  if(courses.length===0){
-    container.innerHTML='<div class="empty-state"><div class="empty-state-icon">📚</div><div>还没有课程，点右上角「+ 新建课程」开始</div></div>';
-    return;
-  }
-  const all=getAllUpcomingSessions();
-  // Sort courses by earliest session date
-  const sorted=[...courses].sort((a,b)=>{
+  const all=[...courses].sort((a,b)=>{
     const aDates=a.sessions?.map(s=>s.date).filter(Boolean).sort()||[];
     const bDates=b.sessions?.map(s=>s.date).filter(Boolean).sort()||[];
-    const aFirst=aDates[0]||'9999-99-99';
-    const bFirst=bDates[0]||'9999-99-99';
-    return aFirst.localeCompare(bFirst);
+    return (aDates[0]||'9999-99-99').localeCompare(bDates[0]||'9999-99-99');
   });
-  // Group by course — one row per course with compact summary
-  container.innerHTML=sorted.map(course=>{
+  const filtered=all.filter(c=>(c.type||'main')===currentCoursesTab);
+  if(filtered.length===0){
+    const empty={main:'正课',preview:'Preview',event:'其他 Event'};
+    container.innerHTML='<div class="empty-state"><div class="empty-state-icon">📚</div><div>还没有'+empty[currentCoursesTab]+'</div></div>';
+    return;
+  }
+  container.innerHTML=filtered.map(course=>{
     const t=course.type||'main';
     const sessions=(course.sessions||[]).slice().sort((a,b)=>a.date.localeCompare(b.date));
     const typeMap={main:'正课',preview:'Preview',event:'其他 Event'};
@@ -1267,6 +1265,17 @@ document.querySelectorAll('.view-tab').forEach(t=>{
     document.getElementById('calendarView').style.display=currentView==='calendar'?'block':'none';
     document.getElementById('coursesView').style.display=currentView==='courses'?'block':'none';
     if(currentView==='courses')renderCoursesView();
+  });
+});
+
+document.querySelectorAll('.courses-tab').forEach(t=>{
+  t.addEventListener('click',()=>{
+    document.querySelectorAll('.courses-tab').forEach(x=>{x.classList.remove('active');x.style.background='transparent';x.style.color='var(--text-dim)'});
+    t.classList.add('active');
+    t.style.background='var(--accent)';
+    t.style.color='#fff';
+    currentCoursesTab=t.dataset.type;
+    renderCoursesView();
   });
 });
 
