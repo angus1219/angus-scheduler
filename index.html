@@ -84,8 +84,9 @@ header{display:flex;align-items:center;justify-content:space-between;padding:20p
 .stat-item .num{font-size:16px;font-weight:700;color:var(--text);letter-spacing:-.02em}
 .stat-item .num.warn{color:var(--amber)}
 .stat-item .num.danger{color:var(--red)}
-.stat-item.clickable{cursor:pointer}
-.stat-item.clickable:hover{background:rgba(255,255,255,.06)}
+.stat-item.clickable{cursor:pointer;background:rgba(245,158,11,.06);border:1px solid rgba(245,158,11,.25);padding:6px 12px}
+.stat-item.clickable:hover{background:rgba(245,158,11,.12);border-color:var(--amber)}
+.stat-item.clickable::after{content:' →';margin-left:2px;font-size:10px;opacity:.6}
 .stats-group{padding:8px 14px}
 .stats-group .stat-label{font-size:10px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;color:var(--text-muted);padding:4px 10px;border-radius:4px;margin-right:auto}
 #statsBarMain .stat-label{color:var(--accent)}
