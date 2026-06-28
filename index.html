@@ -151,9 +151,9 @@ header{display:flex;align-items:center;justify-content:space-between;padding:20p
 .course-session-item{display:flex;flex-wrap:wrap;gap:6px;align-items:center;padding:8px 10px;background:rgba(255,255,255,.015);border-radius:6px;font-size:12px}
 
 /* Modal */
-.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.7);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);display:none;align-items:center;justify-content:center;z-index:100;padding:16px}
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.7);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);display:none;align-items:flex-end;justify-content:center;z-index:100;padding:0}
 .modal-overlay.active{display:flex}
-.modal{background:var(--bg-2);border:1px solid var(--border);border-radius:var(--radius);padding:24px;width:100%;max-width:440px;max-height:85vh;overflow-y:auto;box-shadow:0 0 0 1px rgba(255,255,255,.04),0 24px 48px rgba(0,0,0,.6)}
+.modal{background:var(--bg-2);border:1px solid var(--border);border-radius:var(--radius) var(--radius) 0 0;padding:24px;width:100%;max-width:440px;max-height:85vh;overflow-y:auto;box-shadow:0 0 0 1px rgba(255,255,255,.04),0 24px 48px rgba(0,0,0,.6)}
 .modal h2{font-size:16px;font-weight:700;margin-bottom:4px}
 .modal-sub{font-size:11px;color:var(--text-muted);margin-bottom:16px}
 .form-group{margin-bottom:12px}
@@ -208,7 +208,7 @@ header{display:flex;align-items:center;justify-content:space-between;padding:20p
   .brand-sub{display:none}
   .cal-day{min-height:38px;font-size:11px}
   .month-title{font-size:16px}
-  .modal{padding:16px}
+  .modal{border-radius:16px 16px 0 0;padding:20px;max-height:90vh}
   .form-row{grid-template-columns:1fr}
 }
 </style>
