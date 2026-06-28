@@ -30,6 +30,7 @@
   --green:#30d158;
   --amber:#ff9f0a;
   --pink:#ff375f;
+  --red:#ff453a;
   --purple:#bf5af2;
   --accent:#0a84ff;
   --accent-2:#5e5ce6;
@@ -151,6 +152,8 @@ header{display:flex;align-items:center;justify-content:space-between;padding:12p
 .stat-item .num{color:var(--accent);font-size:16px;font-weight:700;letter-spacing:-.02em;transition:color .3s}
 .stat-item .num.warn{color:var(--amber)}
 .stat-item .num.danger{color:var(--pink)}
+.stat-item.clickable{cursor:pointer}
+.stat-item.clickable:hover{background:rgba(255,255,255,0.1)}
 .stats-group{padding:8px 14px}
 .stats-group .stat-label{font-size:10px;font-weight:600;letter-spacing:.02em;color:var(--text-dim);padding:4px 10px;background:rgba(255,255,255,0.04);border-radius:50px;border:1px solid var(--border);margin-right:auto}
 #statsBarMain .stat-label{border-color:rgba(10,132,255,0.25);color:var(--blue);background:rgba(10,132,255,0.08)}
