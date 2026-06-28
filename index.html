@@ -881,12 +881,16 @@ function renderCoursesView(){
     return (aDates[0]||'9999-99-99').localeCompare(bDates[0]||'9999-99-99');
   });
   const filtered=all.filter(c=>(c.type||'main')===currentCoursesTab);
-  if(filtered.length===0){
-    const empty={main:'正课',preview:'Preview',event:'其他 Event'};
-    container.innerHTML='<div class="empty-state"><div class="empty-state-icon">📚</div><div>还没有'+empty[currentCoursesTab]+'</div></div>';
-    return;
-  }
-  container.innerHTML=filtered.map(course=>{
+  const today=fmtDate(new Date());
+  const upcoming=filtered.filter(c=>{
+    const dates=(c.sessions||[]).map(s=>s.date).sort();
+    return dates.length===0||dates[dates.length-1]>=today;
+  });
+  const past=filtered.filter(c=>{
+    const dates=(c.sessions||[]).map(s=>s.date).sort();
+    return dates.length>0&&dates[dates.length-1]<today;
+  });
+  const renderCourse=function(course){
     const t=course.type||'main';
     const sessions=(course.sessions||[]).slice().sort((a,b)=>a.date.localeCompare(b.date));
     const typeMap={main:'正课',preview:'Preview',event:'其他 Event'};
@@ -911,7 +915,17 @@ function renderCoursesView(){
         ${course.notes?`<span style="font-size:11px;color:var(--text-muted);margin-left:4px">— ${course.notes}</span>`:''}
       </div>
     </div>`;
-  }).join('');
+  };
+  if(filtered.length===0){
+    const empty={main:'正课',preview:'Preview',event:'其他 Event'};
+    container.innerHTML='<div class="empty-state"><div class="empty-state-icon">📚</div><div>还没有'+empty[currentCoursesTab]+'</div></div>';
+    return;
+  }
+  container.innerHTML=upcoming.map(renderCourse).join('')
+    +(past.length?`<div style="margin-top:24px;padding:14px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-sm)">
+      <div style="font-size:11px;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px">📜 已结束 (${past.length})</div>
+      <div style="opacity:.5">${past.map(renderCourse).join('')}</div>
+    </div>`:'');
 
   container.querySelectorAll('[data-edit-course]').forEach(btn=>{
     btn.addEventListener('click',()=>openEditCourse(+btn.dataset.editCourse));
