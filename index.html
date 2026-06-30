@@ -100,8 +100,9 @@
 }
 .font-heading{font-family:'Instrument Serif',serif;font-style:italic}
 .font-body{font-family:'Barlow',sans-serif}
-html,body{height:100%;font-family:-apple-system,BlinkMacSystemFont,'Inter','SF Pro Display',system-ui,sans-serif;background:#000;color:var(--text);-webkit-font-smoothing:antialiased}
-body{background:linear-gradient(160deg,#000 0%,#050510 40%,#080818 100%)}
+html,body{height:100%;font-family:-apple-system,BlinkMacSystemFont,'Inter','SF Pro Display',system-ui,sans-serif;color:var(--text);-webkit-font-smoothing:antialiased}
+html{background:linear-gradient(160deg,#000 0%,#050510 40%,#080818 100%);background-attachment:fixed}
+body{background:transparent}
 #bgCanvas{position:fixed;top:0;left:0;width:100%;height:100%;z-index:0;pointer-events:none}
 #app{max-width:768px;margin:0 auto;padding:0 24px 32px;padding-bottom:calc(32px + env(safe-area-inset-bottom,0px));position:relative;z-index:1}
 
