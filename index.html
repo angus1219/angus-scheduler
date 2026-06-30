@@ -103,7 +103,7 @@
 html,body{height:100%;font-family:-apple-system,BlinkMacSystemFont,'Inter','SF Pro Display',system-ui,sans-serif;color:var(--text);-webkit-font-smoothing:antialiased}
 html{background:linear-gradient(160deg,#000 0%,#050510 40%,#080818 100%);background-attachment:fixed}
 body{background:transparent}
-#bgCanvas{position:fixed;top:0;left:0;width:100%;height:100%;z-index:0;pointer-events:none}
+#bgVideo{position:fixed;top:0;left:0;width:100%;height:100%;z-index:0;pointer-events:none;object-fit:cover;opacity:0}
 #app{max-width:768px;margin:0 auto;padding:0 24px 32px;padding-bottom:calc(32px + env(safe-area-inset-bottom,0px));position:relative;z-index:1}
 
 /* Header */
@@ -288,7 +288,7 @@ header{display:flex;align-items:center;justify-content:space-between;padding:20p
 </style>
 </head>
 <body>
-<canvas id="bgCanvas"></canvas>
+<video id="bgVideo" autoplay muted playsinline preload="auto"></video>
 <div id="app">
   <header>
     <div class="brand">
@@ -1558,47 +1558,64 @@ document.addEventListener('click',()=>{
 },true);
 </script>
 
-<!-- Gradient Orbs Animation -->
+<!-- FadingVideo Background -->
 <script>
 (function(){
-  const c=document.getElementById('bgCanvas');
-  if(!c)return;
-  const ctx=c.getContext('2d');
-  let W,H;
+  const v=document.getElementById('bgVideo');
+  if(!v)return;
+  const SRC='https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260418_080021_d598092b-c4c2-4e53-8e46-94cf9064cd50.mp4';
+  const FADE_MS=500,FADE_OUT_LEAD=0.55;
+  let rAF=null,fadingOut=false,mounted=true;
 
-  const orbs=[
-    {r:700,color:'rgba(129,140,248,',alpha:0.10,sx:0.003,sy:0.002,phaseX:0,phaseY:1.2},
-    {r:500,color:'rgba(34,211,238,',alpha:0.08,sx:-0.002,sy:0.004,phaseX:2.1,phaseY:0.8},
-    {r:400,color:'rgba(192,132,252,',alpha:0.06,sx:0.004,sy:-0.003,phaseX:4.3,phaseY:3.7},
-  ];
-
-  function resize(){
-    W=c.width=window.innerWidth;
-    H=c.height=window.innerHeight;
-  }
-
-  function draw(t){
-    ctx.clearRect(0,0,W,H);
-    const time=t/1000;
-
-    for(let i=0;i<orbs.length;i++){
-      const o=orbs[i];
-      const x=W*0.5+Math.sin(time*o.sx+o.phaseX)*W*0.3;
-      const y=H*0.5+Math.sin(time*o.sy+o.phaseY)*H*0.25;
-      const grad=ctx.createRadialGradient(x,y,0,x,y,o.r);
-      grad.addColorStop(0,o.color+o.alpha+')');
-      grad.addColorStop(0.5,o.color+(o.alpha*0.4)+')');
-      grad.addColorStop(1,'rgba(0,0,0,0)');
-      ctx.fillStyle=grad;
-      ctx.fillRect(0,0,W,H);
+  function fadeTo(target,duration){
+    if(rAF)cancelAnimationFrame(rAF);
+    const start=parseFloat(v.style.opacity)||0;
+    const diff=target-start,startTime=performance.now();
+    function anim(now){
+      if(!mounted)return;
+      const p=Math.min((now-startTime)/duration,1);
+      const e=1-Math.pow(1-p,3);
+      v.style.opacity=String(start+diff*e);
+      if(p<1)rAF=requestAnimationFrame(anim);
     }
-
-    requestAnimationFrame(draw);
+    rAF=requestAnimationFrame(anim);
   }
 
-  window.addEventListener('resize',resize);
-  resize();
-  requestAnimationFrame(draw);
+  v.addEventListener('loadeddata',function onLoad(){
+    if(!mounted)return;
+    v.removeEventListener('loadeddata',onLoad);
+    v.style.opacity='0';
+    v.play().catch(function(){});
+    fadeTo(1,FADE_MS);
+  });
+
+  v.addEventListener('timeupdate',function(){
+    if(fadingOut||!v.duration)return;
+    const remaining=v.duration-v.currentTime;
+    if(remaining>0&&remaining<=FADE_OUT_LEAD){
+      fadingOut=true;
+      fadeTo(0,FADE_MS);
+    }
+  });
+
+  v.addEventListener('ended',function(){
+    if(!mounted)return;
+    v.style.opacity='0';
+    fadingOut=false;
+    setTimeout(function(){
+      if(!mounted)return;
+      v.currentTime=0;
+      v.play().catch(function(){});
+      fadeTo(1,FADE_MS);
+    },100);
+  });
+
+  v.src=SRC;
+  if(v.readyState>=2){
+    v.style.opacity='0';
+    v.play().catch(function(){});
+    fadeTo(1,FADE_MS);
+  }
 })();
 </script>
 
