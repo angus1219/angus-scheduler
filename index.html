@@ -501,6 +501,7 @@ header{display:flex;align-items:center;justify-content:space-between;padding:20p
           <select id="coursePhoto">
             <option value="">— 待定 —</option>
             <option value="pending">还没安排</option>
+            <option value="not-needed">不需要</option>
             <option value="soon-loong">Soon Loong</option>
             <option value="mins-studio">Mins Studio</option>
             <option value="new-media">新媒体部门</option>
@@ -513,6 +514,7 @@ header{display:flex;align-items:center;justify-content:space-between;padding:20p
           <select id="courseVideo">
             <option value="">— 待定 —</option>
             <option value="pending">还没安排</option>
+            <option value="not-needed">不需要</option>
             <option value="mins-studio">Mins Studio</option>
             <option value="new-media">新媒体部门</option>
             <option value="__other__">其他</option>
@@ -861,10 +863,11 @@ function showAVIssue(type,courseType){
         <select class="av-select" data-course="'+c.id+'" data-type="'+type+'" style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:6px 10px;font-size:12px;color:var(--text);font-family:inherit">\
           <option value="">— 待定 —</option>\
           <option value="pending" '+(!c[type]||c[type]==='pending'?'selected':'')+'>还没安排</option>\
+          <option value="not-needed" '+(c[type]==='not-needed'?'selected':'')+'>不需要</option>\
           '+(type==='photo'?'<option value="soon-loong" '+(c[type]==='soon-loong'?'selected':'')+'>Soon Loong</option>':'')+'\
           <option value="mins-studio" '+(c[type]==='mins-studio'?'selected':'')+'>Mins Studio</option>\
           <option value="new-media" '+(c[type]==='new-media'?'selected':'')+'>新媒体部门</option>\
-          <option value="__other_custom__" '+(c[type]&&!['pending','soon-loong','mins-studio','new-media'].includes(c[type])?'selected':'')+'>其他</option>\
+          <option value="__other_custom__" '+(c[type]&&!['pending','not-needed','soon-loong','mins-studio','new-media'].includes(c[type])?'selected':'')+'>其他</option>\
         </select>\
         '+(c[type]&&!['pending','soon-loong','mins-studio','new-media'].includes(c[type])?'<span style="font-size:12px;color:var(--text-dim);padding:6px 8px;background:var(--surface);border:1px solid var(--border);border-radius:10px">'+c[type]+'</span>':'')+'\
       </div>\
