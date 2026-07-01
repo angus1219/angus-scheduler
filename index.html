@@ -328,13 +328,17 @@ header{display:flex;align-items:center;justify-content:space-between;padding:20p
   <span class="stat-label">🔍 Preview</span>
   <span class="stat-item"><span class="num" id="statPreviewTotal">0</span> 堂</span>
   <span class="stat-item"><span class="num" id="statPreviewVenue">0</span> 📍未定</span>
-  <span class="stat-item"><span class="num" id="statPreviewAv">0</span> 🎤未安排</span>
+  <span class="stat-item"><span class="num" id="statPreviewAv">0</span> 🎤</span>
+  <span class="stat-item"><span class="num" id="statPreviewPhoto">0</span> 📷</span>
+  <span class="stat-item"><span class="num" id="statPreviewVideo">0</span> 🎥</span>
 </div>
 <div class="stats-bar stats-group liquid-glass" id="statsBarEvent">
   <span class="stat-label">✨ 其他Event</span>
   <span class="stat-item"><span class="num" id="statEventTotal">0</span> 堂</span>
   <span class="stat-item"><span class="num" id="statEventVenue">0</span> 📍未定</span>
-  <span class="stat-item"><span class="num" id="statEventAv">0</span> 🎤未安排</span>
+  <span class="stat-item"><span class="num" id="statEventAv">0</span> 🎤</span>
+  <span class="stat-item"><span class="num" id="statEventPhoto">0</span> 📷</span>
+  <span class="stat-item"><span class="num" id="statEventVideo">0</span> 🎥</span>
 </div>
 </div>
 </div>
@@ -697,7 +701,7 @@ function computeStats(){
     const aEl=document.getElementById(aId);if(aEl){const p=aEl.parentElement;p.classList.toggle('clickable',b.av>0);p.onclick=b.av>0?()=>showIssueList(t,'av'):null;}
   }
   // Admin checklist stats for 正课 — count courses, not items
-  let bfDone=0,afDone=0,bfCourses=0,afCourses=0,paDone=0,paCourses=0,avPhotoPending=0,avVideoPending=0;
+  let bfDone=0,afDone=0,bfCourses=0,afCourses=0,paDone=0,paCourses=0,avPhotoPending=0,avVideoPending=0,avPhotoPendingPreview=0,avVideoPendingPreview=0,avPhotoPendingEvent=0,avVideoPendingEvent=0;
   for(const c of courses){
     const t=c.type||'main';
     const cl=c.checklist;
@@ -710,11 +714,9 @@ function computeStats(){
       paCourses++;
       if(cl?.after&&ADMIN_PREVIEW_AFTER.every(i=>cl.after[i]))paDone++;
     }
-    // Photo/Video counts for 正课
-    if(t==='main'){
-      if(!c.photo||c.photo==='pending')avPhotoPending++;
-      if(!c.video||c.video==='pending')avVideoPending++;
-    }
+    // Photo/Video counts per type
+    if(!c.photo||c.photo==='pending'){if(t==='main')avPhotoPending++;else if(t==='preview')avPhotoPendingPreview++;else avPhotoPendingEvent++;}
+    if(!c.video||c.video==='pending'){if(t==='main')avVideoPending++;else if(t==='preview')avVideoPendingPreview++;else avVideoPendingEvent++;}
   }
   document.getElementById('statAdminBeforeDone').textContent=bfDone;
   const bfP=document.getElementById('statAdminBeforePending');
@@ -732,11 +734,17 @@ function computeStats(){
   if(afEl){const p=afEl.parentElement;p.classList.toggle('clickable',afCourses-afDone>0);p.onclick=afCourses-afDone>0?()=>showAdminIssue('after','main'):null;}
   const paEl=document.getElementById('statAdminPreviewAfterPending');
   if(paEl){const p=paEl.parentElement;p.classList.toggle('clickable',paCourses-paDone>0);p.onclick=paCourses-paDone>0?()=>showAdminIssue('after','preview'):null;}
-  // Photo/Video stats
+  // Photo/Video stats — per type
   animateNumber('statMainPhoto',avPhotoPending,'warn');
   animateNumber('statMainVideo',avVideoPending,'warn');
-  const phEl=document.getElementById('statMainPhoto');if(phEl){const p=phEl.parentElement;p.classList.toggle('clickable',avPhotoPending>0);p.onclick=avPhotoPending>0?()=>showAVIssue('photo'):null;}
-  const viEl=document.getElementById('statMainVideo');if(viEl){const p=viEl.parentElement;p.classList.toggle('clickable',avVideoPending>0);p.onclick=avVideoPending>0?()=>showAVIssue('video'):null;}
+  animateNumber('statPreviewPhoto',avPhotoPendingPreview,'warn');
+  animateNumber('statPreviewVideo',avVideoPendingPreview,'warn');
+  animateNumber('statEventPhoto',avPhotoPendingEvent,'warn');
+  animateNumber('statEventVideo',avVideoPendingEvent,'warn');
+  const bindAVIssue=function(id,count,type){const el=document.getElementById(id);if(el){const p=el.parentElement;p.classList.toggle('clickable',count>0);p.onclick=count>0?()=>showAVIssue(type,id.includes('Preview')?'preview':id.includes('Event')?'event':'main'):null}};
+  bindAVIssue('statMainPhoto',avPhotoPending,'photo');bindAVIssue('statMainVideo',avVideoPending,'video');
+  bindAVIssue('statPreviewPhoto',avPhotoPendingPreview,'photo');bindAVIssue('statPreviewVideo',avVideoPendingPreview,'video');
+  bindAVIssue('statEventPhoto',avPhotoPendingEvent,'photo');bindAVIssue('statEventVideo',avVideoPendingEvent,'video');
 }
 
 const TYPE_NAMES={main:'正课',preview:'Preview',event:'Event'};
@@ -835,12 +843,12 @@ function showAdminIssue(phase,courseType){
 }
 
 const AV_DISPLAY={photo:{label:'📷 Photo',maintainer:true},video:{label:'🎥 Video',maintainer:false}};
-function showAVIssue(type){
-  document.getElementById('issueModalTitle').textContent='🎤 AV — '+(type==='photo'?'📷 Photo':'🎥 Video');
-  const items=type==='photo'?['soon-loong','mins-studio','new-media']:['mins-studio','new-media'];
+function showAVIssue(type,courseType){
+  const typeLabel={main:'正课',preview:'Preview',event:'其他 Event'};
+  document.getElementById('issueModalTitle').textContent='🎤 AV — '+(type==='photo'?'📷':'🎥')+' '+typeLabel[courseType||'main'];
   const label=type==='photo'?'摄影师':'摄像师';
   const container=document.getElementById('issueList');
-  const affected=courses.filter(c=>(c.type||'main')==='main'&&(!c[type]||c[type]==='pending'));
+  const affected=courses.filter(c=>(c.type||'main')===(courseType||'main')&&(!c[type]||c[type]==='pending'));
   if(!affected.length){container.innerHTML='<div style=\"text-align:center;padding:24px;color:var(--text-muted)\">全部已安排 ✅</div>';document.getElementById('issueModalSub').textContent='';showModal('issueModal');return}
   container.innerHTML=affected.map(function(c){
     const dates=(c.sessions||[]).map(s=>s.date).sort();
