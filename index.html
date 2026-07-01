@@ -653,9 +653,13 @@ function courseStatus(course){
 
 function computeStats(){
   const buckets={main:{total:0,venue:0,av:0},preview:{total:0,venue:0,av:0},event:{total:0,venue:0,av:0}};
+  const todayStr=fmtDate(new Date());
   for(const c of courses){
     const t=c.type||'main';
     if(!buckets[t])continue;
+    const sessionDates=(c.sessions||[]).map(s=>s.date).sort();
+    // Only count upcoming courses (last session >= today)
+    if(sessionDates.length&&sessionDates[sessionDates.length-1]<todayStr)continue;
     buckets[t].total++;
     let hasVenueIssue=false,hasAvIssue=false;
     for(const s of (c.sessions||[])){
@@ -690,9 +694,12 @@ function computeStats(){
       paCourses++;
       if(cl?.after&&ADMIN_PREVIEW_AFTER.every(i=>cl.after[i]))paDone++;
     }
-    // Photo/Video counts per type
-    if(!c.photo||c.photo==='pending'){if(t==='main')avPhotoPending++;else if(t==='preview')avPhotoPendingPreview++;else avPhotoPendingEvent++;}
-    if(!c.video||c.video==='pending'){if(t==='main')avVideoPending++;else if(t==='preview')avVideoPendingPreview++;else avVideoPendingEvent++;}
+    // Photo/Video counts per type — upcoming only
+    const sd=(c.sessions||[]).map(s=>s.date).sort();
+    if(!sd.length||sd[sd.length-1]>=todayStr){
+      if(!c.photo||c.photo==='pending'){if(t==='main')avPhotoPending++;else if(t==='preview')avPhotoPendingPreview++;else avPhotoPendingEvent++;}
+      if(!c.video||c.video==='pending'){if(t==='main')avVideoPending++;else if(t==='preview')avVideoPendingPreview++;else avVideoPendingEvent++;}
+    }
   }
   document.getElementById('statAdminBeforeDone').textContent=bfDone;
   const bfP=document.getElementById('statAdminBeforePending');
