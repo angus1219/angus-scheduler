@@ -320,7 +320,9 @@ header{display:flex;align-items:center;justify-content:space-between;padding:20p
   <span class="stat-label">📘 正课</span>
   <span class="stat-item"><span class="num" id="statMainTotal">0</span> 堂</span>
   <span class="stat-item"><span class="num" id="statMainVenue">0</span> 📍未定</span>
-  <span class="stat-item"><span class="num" id="statMainAv">0</span> 🎤未安排</span>
+  <span class="stat-item"><span class="num" id="statMainAv">0</span> 🎤</span>
+  <span class="stat-item"><span class="num" id="statMainPhoto">0</span> 📷</span>
+  <span class="stat-item"><span class="num" id="statMainVideo">0</span> 🎥</span>
 </div>
 <div class="stats-bar stats-group liquid-glass" id="statsBarPreview">
   <span class="stat-label">🔍 Preview</span>
@@ -487,6 +489,32 @@ header{display:flex;align-items:center;justify-content:space-between;padding:20p
           <option value="outsource-pending">📡 外包(未安排)</option>
           <option value="outsource-booked">📡 外包(已安排)</option>
         </select>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label>📷 Photo</label>
+          <select id="coursePhoto">
+            <option value="">— 待定 —</option>
+            <option value="pending">还没安排</option>
+            <option value="soon-loong">Soon Loong</option>
+            <option value="mins-studio">Mins Studio</option>
+            <option value="new-media">新媒体部门</option>
+            <option value="__other__">其他</option>
+          </select>
+          <input type="text" id="customPhotoInput" placeholder="输入摄影师..." style="margin-top:6px;display:none">
+        </div>
+        <div class="form-group">
+          <label>🎥 Video</label>
+          <select id="courseVideo">
+            <option value="">— 待定 —</option>
+            <option value="pending">还没安排</option>
+            <option value="mins-studio">Mins Studio</option>
+            <option value="new-media">新媒体部门</option>
+            <option value="__other__">其他</option>
+          </select>
+          <input type="text" id="customVideoInput" placeholder="输入摄像师..." style="margin-top:6px;display:none">
+        </div>
       </div>
 
       <div id="deleteSection" style="display:none">
@@ -669,7 +697,7 @@ function computeStats(){
     const aEl=document.getElementById(aId);if(aEl){const p=aEl.parentElement;p.classList.toggle('clickable',b.av>0);p.onclick=b.av>0?()=>showIssueList(t,'av'):null;}
   }
   // Admin checklist stats for 正课 — count courses, not items
-  let bfDone=0,afDone=0,bfCourses=0,afCourses=0,paDone=0,paCourses=0;
+  let bfDone=0,afDone=0,bfCourses=0,afCourses=0,paDone=0,paCourses=0,avPhotoPending=0,avVideoPending=0;
   for(const c of courses){
     const t=c.type||'main';
     const cl=c.checklist;
@@ -681,6 +709,11 @@ function computeStats(){
     }else if(t==='preview'){
       paCourses++;
       if(cl?.after&&ADMIN_PREVIEW_AFTER.every(i=>cl.after[i]))paDone++;
+    }
+    // Photo/Video counts for 正课
+    if(t==='main'){
+      if(!c.photo||c.photo==='pending')avPhotoPending++;
+      if(!c.video||c.video==='pending')avVideoPending++;
     }
   }
   document.getElementById('statAdminBeforeDone').textContent=bfDone;
@@ -699,6 +732,11 @@ function computeStats(){
   if(afEl){const p=afEl.parentElement;p.classList.toggle('clickable',afCourses-afDone>0);p.onclick=afCourses-afDone>0?()=>showAdminIssue('after','main'):null;}
   const paEl=document.getElementById('statAdminPreviewAfterPending');
   if(paEl){const p=paEl.parentElement;p.classList.toggle('clickable',paCourses-paDone>0);p.onclick=paCourses-paDone>0?()=>showAdminIssue('after','preview'):null;}
+  // Photo/Video stats
+  animateNumber('statMainPhoto',avPhotoPending,'warn');
+  animateNumber('statMainVideo',avVideoPending,'warn');
+  const phEl=document.getElementById('statMainPhoto');if(phEl){const p=phEl.parentElement;p.classList.toggle('clickable',avPhotoPending>0);p.onclick=avPhotoPending>0?()=>showAVIssue('photo'):null;}
+  const viEl=document.getElementById('statMainVideo');if(viEl){const p=viEl.parentElement;p.classList.toggle('clickable',avVideoPending>0);p.onclick=avVideoPending>0?()=>showAVIssue('video'):null;}
 }
 
 const TYPE_NAMES={main:'正课',preview:'Preview',event:'Event'};
@@ -793,6 +831,51 @@ function showAdminIssue(phase,courseType){
     });
   });
   document.getElementById('issueModalSub').textContent='点击项目切换 ✓/✗';
+  showModal('issueModal');
+}
+
+const AV_DISPLAY={photo:{label:'📷 Photo',maintainer:true},video:{label:'🎥 Video',maintainer:false}};
+function showAVIssue(type){
+  document.getElementById('issueModalTitle').textContent='🎤 AV — '+(type==='photo'?'📷 Photo':'🎥 Video');
+  const items=type==='photo'?['soon-loong','mins-studio','new-media']:['mins-studio','new-media'];
+  const label=type==='photo'?'摄影师':'摄像师';
+  const container=document.getElementById('issueList');
+  const affected=courses.filter(c=>(c.type||'main')==='main'&&(!c[type]||c[type]==='pending'));
+  if(!affected.length){container.innerHTML='<div style=\"text-align:center;padding:24px;color:var(--text-muted)\">全部已安排 ✅</div>';document.getElementById('issueModalSub').textContent='';showModal('issueModal');return}
+  container.innerHTML=affected.map(function(c){
+    const dates=(c.sessions||[]).map(s=>s.date).sort();
+    const range=dates.length>1?dates[0].slice(5)+' - '+dates[dates.length-1].slice(5):dates[0]?.slice(5)||'';
+    const trainer=c.trainer?'<span class=\"badge badge-time\" style=\"background:rgba(124,58,237,0.1);color:#a78bfa;border-color:rgba(124,58,237,0.2)\">👤 '+c.trainer+'</span>':'';
+    return '<div class="session-card" style="margin:0" data-course-id="'+c.id+'">\
+      <div class="session-name">'+c.name+'</div>\
+      <div class="session-meta"><span class="badge badge-day">📆 '+range+'</span>'+trainer+'</div>\
+      <div style="margin-top:6px;display:flex;flex-wrap:wrap;gap:6px">\
+        <select class="av-select" data-course="'+c.id+'" data-type="'+type+'" style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:6px 10px;font-size:12px;color:var(--text);font-family:inherit">\
+          <option value="">— 待定 —</option>\
+          <option value="pending" '+(!c[type]||c[type]==='pending'?'selected':'')+'>还没安排</option>\
+          '+(type==='photo'?'<option value="soon-loong" '+(c[type]==='soon-loong'?'selected':'')+'>Soon Loong</option>':'')+'\
+          <option value="mins-studio" '+(c[type]==='mins-studio'?'selected':'')+'>Mins Studio</option>\
+          <option value="new-media" '+(c[type]==='new-media'?'selected':'')+'>新媒体部门</option>\
+          <option value="__other_custom__" '+(c[type]&&!['pending','soon-loong','mins-studio','new-media'].includes(c[type])?'selected':'')+'>其他</option>\
+        </select>\
+        '+(c[type]&&!['pending','soon-loong','mins-studio','new-media'].includes(c[type])?'<span style="font-size:12px;color:var(--text-dim);padding:6px 8px;background:var(--surface);border:1px solid var(--border);border-radius:10px">'+c[type]+'</span>':'')+'\
+      </div>\
+    </div>';
+  }).join('');
+  container.querySelectorAll('.av-select').forEach(function(sel){
+    sel.addEventListener('change',async function(){
+      const id=+this.dataset.course;
+      const type=this.dataset.type;
+      const val=this.value;
+      const course=courses.find(c=>c.id===id);
+      if(!course)return;
+      course[type]=val==='__other_custom__'?prompt('输入'+label+'名称：')||'':val;
+      if(val==='')course[type]='';
+      course.updatedAt=Date.now();
+      await dbPut(STORE,course);await loadCourses();syncPush();computeStats();showAVIssue(type);
+    });
+  });
+  document.getElementById('issueModalSub').textContent='选好摄影师/摄像师后自动保存';
   showModal('issueModal');
 }
 
@@ -933,12 +1016,13 @@ function renderSessionCard(course,session,sessionIdx){
   const typeCls={main:'badge-type-main',preview:'badge-type-preview',event:'badge-type-event'};
   typeBadge=`<span class="badge ${typeCls[t]}">${typeMap[t]}</span>`;
   const trainerHtml=course.trainer?`<span class="badge badge-time" style="background:rgba(124,58,237,0.1);color:#a78bfa;border-color:rgba(124,58,237,0.2)">👤 ${course.trainer}</span>`:'';
+  const photoHtml=course.photo&&course.photo!=='pending'?`<span class="badge badge-time" style="background:rgba(10,132,255,0.08);color:var(--blue);border-color:rgba(10,132,255,0.2)">📷 ${course.photo==='soon-loong'?'Soon Loong':course.photo==='mins-studio'?'Mins Studio':course.photo==='new-media'?'新媒体':course.photo}</span>`:'';
   const timeHtml=session.time?`<span class="badge badge-time">⏰ ${session.time}</span>`:'';
   const pendingCls=!sessionHasVenue(session)||!sessionHasAv(session)?'course-pending':'';
   const cardCls=`session-card type-card-${t} ${pendingCls}`.trim();
   return `<div class="${cardCls}" data-course-id="${course.id}">
     <div class="session-name">${course.name} ${typeBadge}</div>
-    <div class="session-meta">${totalDays>1?`<span class="badge badge-day">📆 ${dayLabel}${session.date}</span>`:''}${timeHtml}${trainerHtml}${venueBadge}${avBadge}</div>
+    <div class="session-meta">${totalDays>1?`<span class="badge badge-day">📆 ${dayLabel}${session.date}</span>`:''}${timeHtml}${trainerHtml}${photoHtml}${venueBadge}${avBadge}</div>
     ${course.notes?`<div style="font-size:12px;color:var(--text-muted);margin-top:6px">${course.notes}</div>`:''}
   </div>`;
 }
@@ -973,6 +1057,7 @@ function renderCoursesView(){
     const av=s0.avType==='inhouse'?'<span class="badge badge-inhouse">🎤 Inhouse</span>':s0.avType==='outsource-booked'?'<span class="badge badge-outsource-booked">📡 外包(已安排)</span>':s0.avType==='outsource-pending'||s0.avType==='outsource'?'<span class="badge badge-outsource-pending">📡 外包(未安排)</span>':'<span class="badge badge-pending">⏳ AV待定</span>';
     const time=s0.time?`<span class="badge badge-time">⏰ ${s0.time}</span>`:'';
     const trainerHtml=course.trainer?`<span class="badge badge-time" style="background:rgba(124,58,237,0.1);color:#a78bfa;border-color:rgba(124,58,237,0.2)">👤 ${course.trainer}</span>`:'';
+    const photoHtml=course.photo&&course.photo!=='pending'?`<span class="badge badge-time" style="background:rgba(10,132,255,0.08);color:var(--blue);border-color:rgba(10,132,255,0.2)">📷 ${course.photo==='soon-loong'?'Soon Loong':course.photo==='mins-studio'?'Mins Studio':course.photo==='new-media'?'新媒体':course.photo}</span>`:'';
     return `<div class="course-row">
       <div class="course-row-head">
         <div class="course-row-name">${course.name} <span class="badge ${typeCls[t]}" style="margin-left:8px">${typeMap[t]}</span></div>
@@ -982,7 +1067,7 @@ function renderCoursesView(){
         </div>
       </div>
       <div class="course-session-item" style="background:var(--surface);border-radius:8px;padding:8px 10px;display:flex;flex-wrap:wrap;gap:6px;align-items:center;font-size:13px">
-        <span class="badge badge-day" style="font-size:12px">📆 ${range}</span>${time}${trainerHtml}${venue}${av}
+        <span class="badge badge-day" style="font-size:12px">📆 ${range}</span>${time}${trainerHtml}${photoHtml}${venue}${av}
         ${course.notes?`<span style="font-size:11px;color:var(--text-muted);margin-left:4px">— ${course.notes}</span>`:''}
       </div>
     </div>`;
@@ -1167,6 +1252,12 @@ function openNewCourse(){
   document.getElementById('startTime').value='';
   document.getElementById('endTime').value='';
   document.getElementById('courseAvType').value='';
+  document.getElementById('coursePhoto').value='';
+  document.getElementById('courseVideo').value='';
+  document.getElementById('customPhotoInput').style.display='none';
+  document.getElementById('customPhotoInput').value='';
+  document.getElementById('customVideoInput').style.display='none';
+  document.getElementById('customVideoInput').value='';
   document.getElementById('courseTrainer').value='';
   document.getElementById('customTrainerInput').style.display='none';
   document.getElementById('customTrainerInput').value='';
@@ -1199,6 +1290,14 @@ function openEditCourse(id){
   document.getElementById('startTime').value=t.start;
   document.getElementById('endTime').value=t.end;
   document.getElementById('courseAvType').value=firstSession.avType||'';
+  const photo=course.photo||'';
+  const photoSel=document.getElementById('coursePhoto');
+  const photoOpts=Array.from(photoSel.options).map(o=>o.value);
+  if(photoOpts.includes(photo)){photoSel.value=photo;document.getElementById('customPhotoInput').style.display='none'}else{photoSel.value='__other__';document.getElementById('customPhotoInput').value=photo;document.getElementById('customPhotoInput').style.display='block'}
+  const video=course.video||'';
+  const videoSel=document.getElementById('courseVideo');
+  const videoOpts=Array.from(videoSel.options).map(o=>o.value);
+  if(videoOpts.includes(video)){videoSel.value=video;document.getElementById('customVideoInput').style.display='none'}else{videoSel.value='__other__';document.getElementById('customVideoInput').value=video;document.getElementById('customVideoInput').style.display='block'}
   const trainer=course.trainer||'';
   const trainerSel=document.getElementById('courseTrainer');
   const options=Array.from(trainerSel.options).map(o=>o.value);
@@ -1384,6 +1483,10 @@ document.getElementById('courseForm').addEventListener('submit',async e=>{
   const avType=document.getElementById('courseAvType').value;
   const trainerSel=document.getElementById('courseTrainer').value;
   const trainer=trainerSel==='__other__'?document.getElementById('customTrainerInput').value.trim():trainerSel;
+  const photoSel=document.getElementById('coursePhoto').value;
+  const photo=photoSel==='__other__'?document.getElementById('customPhotoInput').value.trim():photoSel;
+  const videoSel=document.getElementById('courseVideo').value;
+  const video=videoSel==='__other__'?document.getElementById('customVideoInput').value.trim():videoSel;
 
   if(!name){showToast('请输入名称','error');return}
   if(!startDate||!endDate){showToast('请选择日期','error');return}
@@ -1392,7 +1495,7 @@ document.getElementById('courseForm').addEventListener('submit',async e=>{
 
   const sessions=dates.map(date=>({date,time,venue,avType}));
 
-  const course={type,name,notes,sessions,trainer};
+  const course={type,name,notes,sessions,trainer,photo,video};
   if(id)course.id=+id;
 
   try{
@@ -1415,6 +1518,16 @@ document.getElementById('endDate').addEventListener('change',updateDateRangeInfo
 document.getElementById('courseVenue').addEventListener('change',function(){
   document.getElementById('customVenueInput').style.display=this.value==='__custom__'?'block':'none';
   if(this.value==='__custom__')document.getElementById('customVenueInput').focus();
+});
+
+// Photo/Video custom listeners
+document.getElementById('coursePhoto').addEventListener('change',function(){
+  document.getElementById('customPhotoInput').style.display=this.value==='__other__'?'block':'none';
+  if(this.value==='__other__')document.getElementById('customPhotoInput').focus();
+});
+document.getElementById('courseVideo').addEventListener('change',function(){
+  document.getElementById('customVideoInput').style.display=this.value==='__other__'?'block':'none';
+  if(this.value==='__other__')document.getElementById('customVideoInput').focus();
 });
 
 // Course type listener
