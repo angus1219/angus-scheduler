@@ -412,21 +412,8 @@ header{display:flex;align-items:center;justify-content:space-between;padding:20p
 
       <div class="form-group">
         <label>讲师</label>
-        <select id="courseTrainer">
-          <option value="">— 未指定 —</option>
-          <option value="DWCK">DWCK</option>
-          <option value="Eunice Chew">Eunice Chew</option>
-          <option value="Winsen Khiu">Winsen Khiu</option>
-          <option value="Jason Kok">Jason Kok</option>
-          <option value="Sam Tsen">Sam Tsen</option>
-          <option value="Rachel Lim">Rachel Lim</option>
-          <option value="小姑">小姑</option>
-          <option value="Yika Chong">Yika Chong</option>
-          <option value="Kingsley Chew">Kingsley Chew</option>
-          <option value="Jamie Chin">Jamie Chin</option>
-          <option value="__other__">➕ 其他讲师</option>
-        </select>
-        <input type="text" id="customTrainerInput" placeholder="输入讲师名称..." style="margin-top:6px;display:none">
+        <div id="trainersContainer" style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:4px"></div>
+        <input type="text" id="customTrainerInput" placeholder="输入讲师名称后按 Enter 添加..." style="margin-top:4px;display:none">
       </div>
 
       <div class="form-group">
@@ -636,13 +623,38 @@ function getAllUpcomingSessions(){
 }
 
 const TRAINERS=['DWCK','Eunice Chew','Winsen Khiu','Jason Kok','Sam Tsen','Rachel Lim','小姑','Yika Chong','Kingsley Chew','Jamie Chin'];
-let trainerFilter='';
+const TRAINER_LABELS={DWCK:'DWCK','Eunice Chew':'Eunice Chew','Winsen Khiu':'Winsen Khiu','Jason Kok':'Jason Kok','Sam Tsen':'Sam Tsen','Rachel Lim':'Rachel Lim','小姑':'小姑','Yika Chong':'Yika Chong','Kingsley Chew':'Kingsley Chew','Jamie Chin':'Jamie Chin'};
+let trainerFilter='',addingCustomTrainer=false;
+
+function getTrainers(c){return c.trainers||(c.trainer?[c.trainer]:[]);}
+
+function renderTrainerCheckboxes(selected){
+  const container=document.getElementById('trainersContainer');
+  if(!container)return;
+  const sel=selected||[];
+  container.innerHTML=TRAINERS.map(t=>'<label style="display:inline-flex;align-items:center;gap:4px;padding:4px 10px;border-radius:50px;font-size:12px;font-weight:600;cursor:pointer;background:'+(sel.includes(t)?'var(--accent);color:#fff':'var(--surface);color:var(--text-dim)')+';border:1px solid '+(sel.includes(t)?'var(--accent)':'var(--border)')+';transition:all .15s"><input type="checkbox" value="'+t+'" '+(sel.includes(t)?'checked':'')+' style="display:none">'+t+'</label>').join('')
+    +'<span id="addCustomTrainerBtn" style="padding:4px 10px;border-radius:50px;font-size:12px;font-weight:600;cursor:pointer;background:var(--surface);color:var(--text-dim);border:1px dashed var(--border);transition:all .15s">➕ 其他</span>';
+  container.querySelectorAll('input[type=checkbox]').forEach(cb=>{
+    cb.addEventListener('change',function(){
+      this.parentElement.style.background=this.checked?'var(--accent)':'var(--surface)';
+      this.parentElement.style.color=this.checked?'#fff':'var(--text-dim)';
+      this.parentElement.style.border=this.checked?'1px solid var(--accent)':'1px solid var(--border)';
+    });
+  });
+  const addBtn=document.getElementById('addCustomTrainerBtn');
+  if(addBtn)addBtn.addEventListener('click',function(){
+    const input=document.getElementById('customTrainerInput');
+    input.style.display='block';
+    input.focus();
+    this.style.display='none';
+  });
+}
 
 function buildTrainerFilter(){
   const container=document.getElementById('trainerFilter');
   if(!container)return;
   const used=new Set();
-  for(const c of courses)if(c.trainer&&c.trainer!=='')used.add(c.trainer);
+  for(const c of courses)getTrainers(c).forEach(t=>{if(t)used.add(t)});
   const sorted=Array.from(used).sort();
   container.innerHTML='<span class="filter-pill active" data-trainer="" style="padding:5px 12px;border-radius:50px;font-size:11px;font-weight:600;cursor:pointer;white-space:nowrap;background:var(--accent);color:#fff;border:none;transition:all .2s">全部</span>'
     +sorted.map(t=>'<span class="filter-pill" data-trainer="'+t+'" style="padding:5px 12px;border-radius:50px;font-size:11px;font-weight:600;cursor:pointer;white-space:nowrap;background:var(--surface);color:var(--text-dim);border:1px solid var(--border);transition:all .2s">'+t+'</span>').join('');
@@ -659,7 +671,7 @@ function buildTrainerFilter(){
 function getSessionsForDate(dateStr){
   const all=[];
   for(const c of courses){
-    if(trainerFilter&&c.trainer!==trainerFilter)continue;
+    if(trainerFilter&&!getTrainers(c).includes(trainerFilter))continue;
     for(const s of(c.sessions||[])){
       if(s.date===dateStr)all.push({course:c,session:s});
     }
@@ -780,7 +792,7 @@ function showIssueList(type,issue){
     const venueBadge=sessionHasVenue(s0)?`<span class="badge badge-venue">📍 ${s0.venue}</span>`:'<span class="badge badge-pending">📍 待定</span>';
     const avBadge=sessionHasAv(s0)?'':`<span class="badge badge-pending">🎤 待定</span>`;
     const time=s0.time?`<span class="badge badge-time">⏰ ${s0.time}</span>`:'';
-    const trainerHtml=c.trainer?`<span class="badge badge-time" style="background:rgba(124,58,237,0.1);color:#a78bfa;border-color:rgba(124,58,237,0.2)">👤 ${c.trainer}</span>`:'';
+    const trainerHtml=getTrainers(c).length?`<span class="badge badge-time" style="background:rgba(124,58,237,0.1);color:#a78bfa;border-color:rgba(124,58,237,0.2)">👤 ${getTrainers(c).join(', ')}</span>`:'';
     affectedCourses.push({course:c,range,venueBadge,avBadge,time,trainerHtml});
   }
   const list=document.getElementById('issueList');
@@ -816,7 +828,7 @@ function showAdminIssue(phase,courseType){
     hasAny=true;
     const dates=(c.sessions||[]).map(s=>s.date).sort();
     const range=dates.length>1?dates[0].slice(5)+' - '+dates[dates.length-1].slice(5):dates[0]?.slice(5)||'';
-    const trainer=c.trainer?'<span class="badge badge-time" style="background:rgba(124,58,237,0.1);color:#a78bfa;border-color:rgba(124,58,237,0.2)">👤 '+c.trainer+'</span>':'';
+    const trainer=getTrainers(c).join(', ')?'<span class="badge badge-time" style="background:rgba(124,58,237,0.1);color:#a78bfa;border-color:rgba(124,58,237,0.2)">👤 '+getTrainers(c).join(', ')+'</span>':'';
     return '<div class="session-card" style="margin:0" data-course-id="'+c.id+'">\
       <div class="session-name">'+c.name+'</div>\
       <div class="session-meta"><span class="badge badge-day">📆 '+range+'</span>'+trainer+'</div>\
@@ -869,7 +881,7 @@ function showAVIssue(type,courseType){
   container.innerHTML=affected.map(function(c){
     const dates=(c.sessions||[]).map(s=>s.date).sort();
     const range=dates.length>1?dates[0].slice(5)+' - '+dates[dates.length-1].slice(5):dates[0]?.slice(5)||'';
-    const trainer=c.trainer?'<span class=\"badge badge-time\" style=\"background:rgba(124,58,237,0.1);color:#a78bfa;border-color:rgba(124,58,237,0.2)\">👤 '+c.trainer+'</span>':'';
+    const trainer=getTrainers(c).join(', ')?'<span class=\"badge badge-time\" style=\"background:rgba(124,58,237,0.1);color:#a78bfa;border-color:rgba(124,58,237,0.2)\">👤 '+getTrainers(c).join(', ')+'</span>':'';
     return '<div class="session-card" style="margin:0" data-course-id="'+c.id+'">\
       <div class="session-name">'+c.name+'</div>\
       <div class="session-meta"><span class="badge badge-day">📆 '+range+'</span>'+trainer+'</div>\
@@ -960,7 +972,7 @@ function renderCalendar(){
     const labels=daySessions.slice(0,3).map(item=>{
       const c=item.course;
       const col=getCourseColor(c.name);
-      const trainer=c.trainer?` <span class="trainer">${c.trainer}</span>`:'';
+      const trainer=getTrainers(c).join(', ')?` <span class="trainer">${getTrainers(c).join(', ')}</span>`:'';
       return `<div class="cal-label" style="background:${col.bg};color:${col.fg}">${c.name}${trainer}</div>`;
     }).join('');
     const more=daySessions.length>3?`<div class="cal-label" style="background:transparent;color:var(--text-muted);font-size:9px">+${daySessions.length-3}</div>`:'';
@@ -1040,7 +1052,7 @@ function renderSessionCard(course,session,sessionIdx){
   const typeMap={main:'正课',preview:'Preview',event:'其他 Event'};
   const typeCls={main:'badge-type-main',preview:'badge-type-preview',event:'badge-type-event'};
   typeBadge=`<span class="badge ${typeCls[t]}">${typeMap[t]}</span>`;
-  const trainerHtml=course.trainer?`<span class="badge badge-time" style="background:rgba(124,58,237,0.1);color:#a78bfa;border-color:rgba(124,58,237,0.2)">👤 ${course.trainer}</span>`:'';
+  const trainerHtml=getTrainers(course).join(', ')?`<span class="badge badge-time" style="background:rgba(124,58,237,0.1);color:#a78bfa;border-color:rgba(124,58,237,0.2)">👤 ${getTrainers(course).join(', ')}</span>`:'';
   const photoHtml=course.photo&&course.photo!=='pending'?`<span class="badge badge-time" style="background:rgba(10,132,255,0.08);color:var(--blue);border-color:rgba(10,132,255,0.2)">📷 ${course.photo==='soon-loong'?'Soon Loong':course.photo==='mins-studio'?'Mins Studio':course.photo==='new-media'?'新媒体':course.photo}</span>`:'';
   const timeHtml=session.time?`<span class="badge badge-time">⏰ ${session.time}</span>`:'';
   const pendingCls=!sessionHasVenue(session)||!sessionHasAv(session)?'course-pending':'';
@@ -1081,7 +1093,7 @@ function renderCoursesView(){
     const venue=s0.venue?`<span class="badge badge-venue">📍 ${s0.venue}</span>`:'<span class="badge badge-pending">⏳ 场地待定</span>';
     const av=s0.avType==='inhouse'?'<span class="badge badge-inhouse">🎤 Inhouse</span>':s0.avType==='outsource-booked'?'<span class="badge badge-outsource-booked">📡 外包(已安排)</span>':s0.avType==='outsource-pending'||s0.avType==='outsource'?'<span class="badge badge-outsource-pending">📡 外包(未安排)</span>':'<span class="badge badge-pending">⏳ AV待定</span>';
     const time=s0.time?`<span class="badge badge-time">⏰ ${s0.time}</span>`:'';
-    const trainerHtml=course.trainer?`<span class="badge badge-time" style="background:rgba(124,58,237,0.1);color:#a78bfa;border-color:rgba(124,58,237,0.2)">👤 ${course.trainer}</span>`:'';
+    const trainerHtml=getTrainers(course).join(', ')?`<span class="badge badge-time" style="background:rgba(124,58,237,0.1);color:#a78bfa;border-color:rgba(124,58,237,0.2)">👤 ${getTrainers(course).join(', ')}</span>`:'';
     const photoHtml=course.photo&&course.photo!=='pending'?`<span class="badge badge-time" style="background:rgba(10,132,255,0.08);color:var(--blue);border-color:rgba(10,132,255,0.2)">📷 ${course.photo==='soon-loong'?'Soon Loong':course.photo==='mins-studio'?'Mins Studio':course.photo==='new-media'?'新媒体':course.photo}</span>`:'';
     return `<div class="course-row">
       <div class="course-row-head">
@@ -1283,9 +1295,10 @@ function openNewCourse(){
   document.getElementById('customPhotoInput').value='';
   document.getElementById('customVideoInput').style.display='none';
   document.getElementById('customVideoInput').value='';
-  document.getElementById('courseTrainer').value='';
+  renderTrainerCheckboxes([]);
   document.getElementById('customTrainerInput').style.display='none';
   document.getElementById('customTrainerInput').value='';
+  const addBtn=document.getElementById('addCustomTrainerBtn');if(addBtn)addBtn.style.display='inline';
   document.getElementById('customVenueInput').style.display='none';
   document.getElementById('customVenueInput').value='';
   renderVenueSelect('');
@@ -1323,18 +1336,16 @@ function openEditCourse(id){
   const videoSel=document.getElementById('courseVideo');
   const videoOpts=Array.from(videoSel.options).map(o=>o.value);
   if(videoOpts.includes(video)){videoSel.value=video;document.getElementById('customVideoInput').style.display='none'}else{videoSel.value='__other__';document.getElementById('customVideoInput').value=video;document.getElementById('customVideoInput').style.display='block'}
-  const trainer=course.trainer||'';
-  const trainerSel=document.getElementById('courseTrainer');
-  const options=Array.from(trainerSel.options).map(o=>o.value);
-  if(options.includes(trainer)){
-    trainerSel.value=trainer;
-    document.getElementById('customTrainerInput').style.display='none';
-  }else{
-    trainerSel.value='__other__';
-    document.getElementById('customTrainerInput').value=trainer;
+  renderTrainerCheckboxes(getTrainers(course));
+  document.getElementById('customTrainerInput').style.display='none';
+  document.getElementById('customTrainerInput').value='';
+  const addBtn=document.getElementById('addCustomTrainerBtn');if(addBtn)addBtn.style.display='inline';
+  const customTrainers=getTrainers(course).filter(t=>!TRAINERS.includes(t));
+  if(customTrainers.length){
+    document.getElementById('customTrainerInput').value=customTrainers.join(', ');
     document.getElementById('customTrainerInput').style.display='block';
+    if(addBtn)addBtn.style.display='none';
   }
-  document.getElementById('customVenueInput').value='';
   document.getElementById('customVenueInput').style.display='none';
   renderVenueSelect(firstSession.venue||'');
   document.getElementById('deleteSection').style.display='block';
@@ -1506,12 +1517,13 @@ document.getElementById('courseForm').addEventListener('submit',async e=>{
   const customVenue=document.getElementById('customVenueInput').value.trim();
   const venue=venueSel==='__custom__'?customVenue:venueSel;
   const avType=document.getElementById('courseAvType').value;
-  const trainerSel=document.getElementById('courseTrainer').value;
-  const trainer=trainerSel==='__other__'?document.getElementById('customTrainerInput').value.trim():trainerSel;
   const photoSel=document.getElementById('coursePhoto').value;
   const photo=photoSel==='__other__'?document.getElementById('customPhotoInput').value.trim():photoSel;
   const videoSel=document.getElementById('courseVideo').value;
   const video=videoSel==='__other__'?document.getElementById('customVideoInput').value.trim():videoSel;
+  const trainers=TRAINERS.filter(t=>document.querySelector('#trainersContainer input[value="'+t+'"]')?.checked);
+  const customTrainer=document.getElementById('customTrainerInput').value.trim();
+  if(customTrainer)trainers.push(...customTrainer.split(',').map(s=>s.trim()).filter(Boolean));
 
   if(!name){showToast('请输入名称','error');return}
   if(!startDate||!endDate){showToast('请选择日期','error');return}
@@ -1520,7 +1532,7 @@ document.getElementById('courseForm').addEventListener('submit',async e=>{
 
   const sessions=dates.map(date=>({date,time,venue,avType}));
 
-  const course={type,name,notes,sessions,trainer,photo,video};
+  const course={type,name,notes,sessions,trainers,photo,video};
   if(id)course.id=+id;
 
   try{
