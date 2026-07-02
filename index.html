@@ -1595,20 +1595,25 @@ document.getElementById('adminToggle').addEventListener('click',function(){
 
 // Settings
 document.getElementById('settingsBtn').addEventListener('click',()=>{
-  document.getElementById('githubTokenInput').value=syncToken;
-  const st=document.getElementById('syncStatus');
-  if(syncEnabled){
-    st.textContent='☁ 同步已连接';
-    document.getElementById('connectSyncBtn').style.display='none';
-    document.getElementById('disconnectSyncBtn').style.display='flex';
-    document.getElementById('syncActions').style.display='block';
-  }else{
-    st.textContent='';
-    document.getElementById('connectSyncBtn').style.display='flex';
-    document.getElementById('disconnectSyncBtn').style.display='none';
-    document.getElementById('syncActions').style.display='none';
+  try{
+    document.getElementById('githubTokenInput').value=syncToken;
+    const st=document.getElementById('syncStatus');
+    if(syncEnabled){
+      st.textContent='☁ 同步已连接';
+      document.getElementById('connectSyncBtn').style.display='none';
+      document.getElementById('disconnectSyncBtn').style.display='flex';
+      document.getElementById('syncActions').style.display='block';
+    }else{
+      st.textContent='';
+      document.getElementById('connectSyncBtn').style.display='flex';
+      document.getElementById('disconnectSyncBtn').style.display='none';
+      document.getElementById('syncActions').style.display='none';
+    }
+    showModal('settingsModal');
+  }catch(e){
+    // Fallback: try to show modal directly
+    showModal('settingsModal');
   }
-  showModal('settingsModal');
 });
 document.getElementById('settingsModalClose').addEventListener('click',()=>hideModal('settingsModal'));
 document.getElementById('connectSyncBtn').addEventListener('click',async()=>{
