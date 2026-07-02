@@ -1700,15 +1700,9 @@ async function initApp(){
 if(document.readyState==='loading'){
   document.addEventListener('DOMContentLoaded',initApp);
 }else{
-  // If still not initialized after 100ms, force init
-  setTimeout(initApp,0);
+  initApp();
 }
 
-// Safety net: if user clicks and grid is empty, re-init
-document.addEventListener('click',()=>{
-  if(selectedDate)return;
-  if(typeof initApp==='function')initApp();
-},true);
 </script>
 
 <!-- FadingVideo Background -->
