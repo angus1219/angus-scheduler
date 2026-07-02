@@ -1570,12 +1570,6 @@ document.getElementById('courseVideo').addEventListener('change',function(){
 // Course type listener
 document.getElementById('courseType').addEventListener('change',updateCourseNameLabel);
 
-// Trainer select listener
-document.getElementById('courseTrainer').addEventListener('change',function(){
-  document.getElementById('customTrainerInput').style.display=this.value==='__other__'?'block':'none';
-  if(this.value==='__other__')document.getElementById('customTrainerInput').focus();
-});
-
 // Issue modal close
 document.getElementById('issueModalClose').addEventListener('click',()=>hideModal('issueModal'));
 
