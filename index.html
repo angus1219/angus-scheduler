@@ -348,6 +348,7 @@ header{display:flex;align-items:center;justify-content:space-between;padding:20p
   </div>
 
   <div id="calendarView">
+    <div class="trainer-filter" id="trainerFilter" style="display:flex;gap:4px;padding:4px;overflow-x:auto;margin-bottom:8px;-webkit-overflow-scrolling:touch"></div>
     <div class="month-nav">
       <span class="month-title" id="monthTitle">July 2026</span>
       <div class="month-controls">
@@ -631,6 +632,38 @@ function getAllUpcomingSessions(){
     }
   }
   all.sort((a,b)=>a.session.date.localeCompare(b.session.date));
+  return all;
+}
+
+const TRAINERS=['DWCK','Eunice Chew','Winsen Khiu','Jason Kok','Sam Tsen','Rachel Lim','小姑','Yika Chong','Kingsley Chew','Jamie Chin'];
+let trainerFilter='';
+
+function buildTrainerFilter(){
+  const container=document.getElementById('trainerFilter');
+  if(!container)return;
+  const used=new Set();
+  for(const c of courses)if(c.trainer&&c.trainer!=='')used.add(c.trainer);
+  const sorted=Array.from(used).sort();
+  container.innerHTML='<span class="filter-pill active" data-trainer="" style="padding:5px 12px;border-radius:50px;font-size:11px;font-weight:600;cursor:pointer;white-space:nowrap;background:var(--accent);color:#fff;border:none;transition:all .2s">全部</span>'
+    +sorted.map(t=>'<span class="filter-pill" data-trainer="'+t+'" style="padding:5px 12px;border-radius:50px;font-size:11px;font-weight:600;cursor:pointer;white-space:nowrap;background:var(--surface);color:var(--text-dim);border:1px solid var(--border);transition:all .2s">'+t+'</span>').join('');
+  container.querySelectorAll('.filter-pill').forEach(el=>{
+    el.addEventListener('click',function(){
+      container.querySelectorAll('.filter-pill').forEach(x=>{x.style.background='var(--surface)';x.style.color='var(--text-dim)';x.style.border='1px solid var(--border)'});
+      this.style.background='var(--accent)';this.style.color='#fff';this.style.border='none';
+      trainerFilter=this.dataset.trainer;
+      renderCalendar();renderDayDetail();
+    });
+  });
+}
+
+function getSessionsForDate(dateStr){
+  const all=[];
+  for(const c of courses){
+    if(trainerFilter&&c.trainer!==trainerFilter)continue;
+    for(const s of(c.sessions||[])){
+      if(s.date===dateStr)all.push({course:c,session:s});
+    }
+  }
   return all;
 }
 function sessionHasVenue(s){return s.venue&&s.venue.trim()!==''}
@@ -1390,7 +1423,7 @@ async function syncPull(){
         venues=[];
         for(const v of data.venues.filter(x=>!isBuiltin(x))){await dbPut(VENUE_STORE,{name:v});venues.push(v)}
       }
-      renderCalendar();renderDayDetail();renderCoursesView();computeStats();
+      renderCalendar();renderDayDetail();renderCoursesView();computeStats();buildTrainerFilter();
       showToast('已从云端同步最新数据 ✓');
     }
     syncEnabled=true;
@@ -1628,6 +1661,7 @@ async function initApp(){
     renderDayDetail();
     renderCoursesView();
     updateSyncUI();
+    buildTrainerFilter();
   }, 5000);
   try{
     await loadVenues();
